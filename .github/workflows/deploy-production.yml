@@ -80,7 +80,7 @@ jobs:
           org.opencontainers.image.authors=${{ github.event.repository.owner.login }}
         
     - name: Deploy to Production Server
-      uses: appleboy/ssh-action@v1.0.0
+      uses: appleboy/ssh-action@v1.2.4
       with:
         host: ${{ secrets.PRODUCTION_SSH_HOST }}
         username: ${{ secrets.PRODUCTION_SSH_USER }}

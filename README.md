@@ -29,10 +29,10 @@
    ```bash
    make setup
    ```
-   Скрипт `scripts/setup.sh` выполнит шаги из Makefile, поэтому отдельные команды `cp src/.env.example src/.env` и т.д. запускать не нужно.
+   Скрипт `scripts/setup.sh` выполнит шаги из Makefile, поэтому отдельные команды `cp src/.env.example src/.env` и т.д. запускать не нужно. Для разработки он использует `docker-compose.yml` + `docker-compose.dev.yml`, чтобы сразу поднять вспомогательные сервисы (phpMyAdmin, Adminer, Meilisearch UI) и HTTPS.
 3. Запустите проект и убедитесь, что сервисы работают:
    ```bash
-   make up
+   make up-dev
    make ps
    ```
 
@@ -41,12 +41,12 @@
 ```bash
 cp src/.env.example src/.env
 cp src/.env.testing.example src/.env.testing
-docker-compose build
-docker-compose up -d
-docker-compose exec -T php-fpm composer install --working-dir=/var/www/html --no-interaction --prefer-dist
-docker-compose exec -T php-fpm npm ci
-docker-compose exec php-fpm php artisan key:generate
-docker-compose exec php-fpm php artisan storage:link
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml build
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec -T php-fpm composer install --working-dir=/var/www/html --no-interaction --prefer-dist
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec -T php-fpm npm ci
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec php-fpm php artisan key:generate
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec php-fpm php artisan storage:link
 ```
 
 ### Доступные команды Make
@@ -55,7 +55,7 @@ docker-compose exec php-fpm php artisan storage:link
 make help         # Список команд
 make install      # Установка зависимостей
 make build        # Сборка Docker образов
-make up           # Запуск контейнеров
+make up-dev       # Запуск контейнеров (docker-compose.yml + docker-compose.dev.yml)
 make down         # Остановка контейнеров
 make logs         # Просмотр логов
 make test         # Запуск тестов
@@ -128,13 +128,16 @@ narrativ/
 └── database/backups/      # Хранилище бэкапов (монтируется в /backups в контейнере postgres)
 ```
 
-## 🌐 Доступ к сервисам
+## 🌐 Доступ к сервисам (локальная разработка)
 
-- Приложение: http://localhost
+- Приложение: http://localhost и https://localhost
 - PostgreSQL: localhost:5432
 - Redis: localhost:6379
-- Meilisearch: http://localhost:7700
+- Meilisearch API: http://localhost:7700
+- Meilisearch UI: http://localhost:7701
 - MailHog UI: http://localhost:8025
+- phpMyAdmin: http://localhost:8081
+- Adminer: http://localhost:8082
 
 ## 🐳 Docker сервисы
 

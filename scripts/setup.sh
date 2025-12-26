@@ -4,6 +4,8 @@ set -e
 
 echo "🚀 Начало настройки проекта..."
 
+COMPOSE_CMD="docker-compose -f docker-compose.yml -f docker-compose.dev.yml"
+
 # Проверяем наличие Docker
 if ! command -v docker &> /dev/null; then
     echo "❌ Docker не установлен. Установите Docker и попробуйте снова."
@@ -61,10 +63,10 @@ mkdir -p database/backups
 
 # Сборка и запуск контейнеров
 echo "🐳 Сборка Docker образов..."
-docker-compose build
+${COMPOSE_CMD} build
 
 echo "🚀 Запуск контейнеров..."
-docker-compose up -d
+${COMPOSE_CMD} up -d
 
 # Ждем запуска сервисов
 echo "⏳ Ожидание запуска сервисов..."
@@ -72,44 +74,47 @@ sleep 10
 
 # Проверяем работу сервисов
 echo "🔍 Проверка работы сервисов..."
-if docker-compose ps | grep -q "Up"; then
+if ${COMPOSE_CMD} ps | grep -q "Up"; then
     echo "✅ Все сервисы запущены"
 else
     echo "❌ Некоторые сервисы не запустились"
-    docker-compose ps
+    ${COMPOSE_CMD} ps
     exit 1
 fi
 
 # Установка зависимостей Laravel
 echo "📦 Установка PHP зависимостей..."
-docker-compose exec -T php-fpm composer install --working-dir=/var/www/html --no-interaction --prefer-dist
+${COMPOSE_CMD} exec -T php-fpm composer install --working-dir=/var/www/html --no-interaction --prefer-dist
 
 echo "📦 Установка Node.js зависимостей..."
-docker-compose exec -T php-fpm npm ci
+${COMPOSE_CMD} exec -T php-fpm npm ci
 
 # Настройка Laravel
 echo "⚙️  Настройка Laravel..."
-docker-compose exec -T php-fpm php artisan key:generate
-docker-compose exec -T php-fpm php artisan storage:link
-docker-compose exec -T php-fpm php artisan optimize:clear
+${COMPOSE_CMD} exec -T php-fpm php artisan key:generate
+${COMPOSE_CMD} exec -T php-fpm php artisan storage:link
+${COMPOSE_CMD} exec -T php-fpm php artisan optimize:clear
 
 # Настройка прав доступа
 echo "🔧 Настройка прав доступа..."
-docker-compose exec -T php-fpm chmod -R 775 storage bootstrap/cache
-docker-compose exec -T php-fpm chown -R laravel:laravel storage bootstrap/cache
+${COMPOSE_CMD} exec -T php-fpm chmod -R 775 storage bootstrap/cache
+${COMPOSE_CMD} exec -T php-fpm chown -R laravel:laravel storage bootstrap/cache
 
 echo ""
 echo "🎉 Настройка завершена!"
 echo ""
-echo "🌐 Доступные сервисы:"
-echo "   • Приложение:        https://localhost"
+echo "🌐 Доступные сервисы (docker-compose.yml + docker-compose.dev.yml):"
+echo "   • Приложение:        http://localhost (HTTP) | https://localhost (HTTPS)"
+echo "   • PostgreSQL:        localhost:5432"
 echo "   • PHPMyAdmin:        http://localhost:8081"
 echo "   • Adminer:           http://localhost:8082"
-echo "   • MailHog:           http://localhost:8025"
-echo "   • Meilisearch:       http://localhost:7700"
+echo "   • MailHog UI:        http://localhost:8025"
+echo "   • Meilisearch API:   http://localhost:7700"
+echo "   • Meilisearch UI:    http://localhost:7701"
 echo ""
 echo "📋 Команды управления:"
-echo "   • make up            - Запуск контейнеров"
+echo "   • make up-dev        - Запуск контейнеров для разработки"
+echo "   • docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d  - Альтернатива без make"
 echo "   • make down          - Остановка контейнеров"
 echo "   • make logs          - Просмотр логов"
 echo "   • make artisan       - Запуск команд Laravel"

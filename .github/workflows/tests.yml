@@ -157,12 +157,47 @@ jobs:
     - name: Prepare .env for testing
       working-directory: src
       run: |
-        cp ../.env.example .env
-        cp ../.env.testing.example .env.testing
+        cp .env.example .env
+        cp .env.testing.example .env.testing
+
+    - name: Configure environment variables
+      working-directory: src
+      run: |
+        cat <<'EOF' >> .env
+        DB_CONNECTION=pgsql
+        DB_HOST=127.0.0.1
+        DB_PORT=5432
+        DB_DATABASE=laravel
+        DB_USERNAME=laravel
+        DB_PASSWORD=secret
+        REDIS_CLIENT=phpredis
+        REDIS_HOST=127.0.0.1
+        REDIS_PASSWORD=null
+        REDIS_PORT=6379
+        MEILISEARCH_HOST=http://127.0.0.1:7700
+        MEILISEARCH_KEY=masterKey
+        EOF
+
+        cat <<'EOF' >> .env.testing
+        DB_CONNECTION=pgsql
+        DB_HOST=127.0.0.1
+        DB_PORT=5432
+        DB_DATABASE=laravel_test
+        DB_USERNAME=laravel
+        DB_PASSWORD=secret
+        REDIS_CLIENT=phpredis
+        REDIS_HOST=127.0.0.1
+        REDIS_PASSWORD=null
+        REDIS_PORT=6379
+        MEILISEARCH_HOST=http://127.0.0.1:7700
+        MEILISEARCH_KEY=masterKey
+        EOF
         
     - name: Generate application key
       working-directory: src
-      run: php artisan key:generate --env=testing
+      run: |
+        php artisan key:generate --force
+        php artisan key:generate --env=testing --force
         
     - name: Run database migrations
       working-directory: src

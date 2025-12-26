@@ -16,6 +16,8 @@ yarn-error.log
 
 # Docker
 /.dockerignore
+docker/nginx/ssl/*
+!docker/nginx/ssl/.gitkeep
 
 # Operating System Files
 .DS_Store

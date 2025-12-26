@@ -1,26 +1,36 @@
 FROM php:8.3-fpm-alpine as base
 
 # Устанавливаем системные зависимости
-RUN apk update && apk add --no-cache \
-    git \
-    curl \
-    libpng-dev \
-    libwebp-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    oniguruma-dev \
-    libxml2-dev \
+RUN apk add --no-cache \
+    freetype \
+    icu \
+    libjpeg-turbo \
+    libwebp \
+    libxml2 \
+    libzip \
+    oniguruma \
+    postgresql-libs \
     zip \
     unzip \
-    postgresql-dev \
-    libzip-dev \
+    libpng
+
+# Устанавливаем сборочные зависимости только на время сборки
+RUN apk add --no-cache --virtual .build-deps \
+    $PHPIZE_DEPS \
+    freetype-dev \
     icu-dev \
+    libjpeg-turbo-dev \
+    libpng-dev \
+    libwebp-dev \
+    libxml2-dev \
+    libzip-dev \
+    oniguruma-dev \
+    postgresql-dev \
     && docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype \
     && docker-php-ext-install pdo pdo_pgsql pgsql gd mbstring exif pcntl bcmath zip intl xml soap opcache \
-    && apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
     && pecl install redis \
     && docker-php-ext-enable redis \
-    && apk del -f .build-deps
+    && apk del --no-network .build-deps
 
 # Настраиваем OpCache для продакшена
 RUN { \
@@ -56,7 +66,9 @@ COPY --from=node /var/www/html/public/build /var/www/html/public/build
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Устанавливаем зависимости
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+RUN apk add --no-cache --virtual .composer-deps git \
+    && composer install --no-dev --optimize-autoloader --no-interaction --no-progress \
+    && apk del --no-network .composer-deps
 
 # Настраиваем права
 RUN chown -R www-data:www-data /var/www/html \

@@ -58,6 +58,6 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Меняем владельца рабочей директории
 RUN chown -R laravel:laravel /var/www/html
-RUN mkdir -p /var/log/supervisor /var/ru
+RUN mkdir -p /var/log/supervisor /var/run/supervisor
 USER root
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

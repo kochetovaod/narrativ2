@@ -90,16 +90,6 @@ services:
     networks:
       - catalog-network
 
-  # Composer сервис
-  composer:
-    image: composer:2.6
-    container_name: catalog-composer
-    volumes:
-      - ./src:/app
-    working_dir: /app
-    networks:
-      - catalog-network
-
   # Node.js/NPM сервис
   npm:
     image: node:20-alpine

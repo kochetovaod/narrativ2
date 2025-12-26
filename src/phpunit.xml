@@ -21,13 +21,22 @@
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
-        <env name="CACHE_STORE" value="array"/>
-        <!-- <env name="DB_CONNECTION" value="sqlite"/> -->
-        <!-- <env name="DB_DATABASE" value=":memory:"/> -->
+        <env name="CACHE_STORE" value="redis"/>
+        <env name="DB_CONNECTION" value="pgsql"/>
+        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_PORT" value="5432"/>
+        <env name="DB_DATABASE" value="laravel_test"/>
+        <env name="DB_USERNAME" value="laravel"/>
+        <env name="DB_PASSWORD" value="secret"/>
         <env name="MAIL_MAILER" value="array"/>
+        <env name="MEILISEARCH_HOST" value="http://127.0.0.1:7700"/>
+        <env name="MEILISEARCH_KEY" value="masterKey"/>
         <env name="PULSE_ENABLED" value="false"/>
-        <env name="QUEUE_CONNECTION" value="sync"/>
-        <env name="SESSION_DRIVER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="redis"/>
+        <env name="REDIS_CLIENT" value="phpredis"/>
+        <env name="REDIS_HOST" value="127.0.0.1"/>
+        <env name="REDIS_PORT" value="6379"/>
+        <env name="SESSION_DRIVER" value="redis"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
     </php>
 </phpunit>

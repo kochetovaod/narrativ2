@@ -1,0 +1,186 @@
+# .github/workflows/deploy-staging.yml
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch: # Ручной запуск
+    inputs:
+      version:
+        description: 'Версия для деплоя'
+        required: false
+        default: 'latest'
+
+env:
+  SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+  SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+  SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+  DEPLOY_PATH: /var/www/catalog-staging
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    environment: staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
+        
+    - name: Configure SSH known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H ${{ secrets.STAGING_SSH_HOST }} >> ~/.ssh/known_hosts
+        
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: docker/php-fpm/Dockerfile.prod
+        push: true
+        tags: |
+          ghcr.io/${{ github.repository }}:staging-${{ github.sha }}
+          ghcr.io/${{ github.repository }}:staging-latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        
+    - name: Deploy to Staging Server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.STAGING_SSH_HOST }}
+        username: ${{ secrets.STAGING_SSH_USER }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
+        script: |
+          set -e
+          
+          echo "🚀 Начинаем деплой на staging..."
+          
+          # Переходим в рабочую директорию
+          cd ${{ env.DEPLOY_PATH }}
+          
+          # Останавливаем текущие контейнеры
+          docker-compose down || true
+          
+          # Обновляем docker-compose.yml
+          cat > docker-compose.staging.yml << 'DOCKER_COMPOSE'
+          version: '3.8'
+          
+          services:
+            php-fpm:
+              image: ghcr.io/${{ github.repository }}:staging-${{ github.sha }}
+              restart: always
+              environment:
+                APP_ENV: staging
+                APP_DEBUG: true
+                APP_URL: https://staging.catalog.local
+                DB_HOST: postgres
+                DB_DATABASE: ${{ secrets.STAGING_DB_DATABASE }}
+                DB_USERNAME: ${{ secrets.STAGING_DB_USERNAME }}
+                DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
+                REDIS_HOST: redis
+                MEILISEARCH_HOST: http://meilisearch:7700
+                MEILISEARCH_KEY: ${{ secrets.STAGING_MEILISEARCH_KEY }}
+              volumes:
+                - ./storage:/var/www/html/storage
+                - ./bootstrap/cache:/var/www/html/bootstrap/cache
+              networks:
+                - catalog-network
+                
+            nginx:
+              image: nginx:1.24-alpine
+              restart: always
+              ports:
+                - "8080:80"
+              volumes:
+                - ./docker/nginx/staging.conf:/etc/nginx/nginx.conf:ro
+                - ./storage/logs:/var/log/nginx
+              networks:
+                - catalog-network
+                
+            postgres:
+              image: postgres:15-alpine
+              restart: always
+              environment:
+                POSTGRES_DB: ${{ secrets.STAGING_DB_DATABASE }}
+                POSTGRES_USER: ${{ secrets.STAGING_DB_USERNAME }}
+                POSTGRES_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
+              volumes:
+                - postgres_data:/var/lib/postgresql/data
+                - ./database/backups:/backups
+              networks:
+                - catalog-network
+                
+            redis:
+              image: redis:7-alpine
+              restart: always
+              command: redis-server --appendonly yes
+              volumes:
+                - redis_data:/data
+              networks:
+                - catalog-network
+                
+            meilisearch:
+              image: getmeili/meilisearch:v1.7
+              restart: always
+              environment:
+                MEILI_MASTER_KEY: ${{ secrets.STAGING_MEILISEARCH_KEY }}
+                MEILI_ENV: staging
+              volumes:
+                - meilisearch_data:/meili_data
+              networks:
+                - catalog-network
+                
+          volumes:
+            postgres_data:
+            redis_data:
+            meilisearch_data:
+            
+          networks:
+            catalog-network:
+              driver: bridge
+          DOCKER_COMPOSE
+          
+          # Запускаем контейнеры
+          docker-compose -f docker-compose.staging.yml up -d
+          
+          # Ждем запуска PHP
+          sleep 10
+          
+          # Выполняем миграции
+          docker-compose -f docker-compose.staging.yml exec -T php-fpm php artisan migrate --force
+          
+          # Очищаем кэш
+          docker-compose -f docker-compose.staging.yml exec -T php-fpm php artisan optimize:clear
+          
+          # Индексируем данные для поиска
+          docker-compose -f docker-compose.staging.yml exec -T php-fpm php artisan scout:import "App\\Models\\Product" || true
+          docker-compose -f docker-compose.staging.yml exec -T php-fpm php artisan scout:import "App\\Models\\PortfolioCase" || true
+          
+          echo "✅ Деплой на staging завершен!"
+          
+    - name: Send deployment notification
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: |
+          🚀 Деплой на Staging
+          Репозиторий: ${{ github.repository }}
+          Версия: ${{ github.sha }}
+          Статус: ✅ Успешно
+          Ссылка: ${{ secrets.STAGING_APP_URL }}
+          Время: ${{ steps.deploy.outcome }}

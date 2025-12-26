@@ -1,0 +1,92 @@
+services:
+  php-fpm:
+    build:
+      context: ./docker/php-fpm
+      dockerfile: Dockerfile
+      args:
+        USER_ID: 1000
+        GROUP_ID: 1000
+    environment:
+      PHP_IDE_CONFIG: "serverName=Docker"
+      XDEBUG_MODE: "${XDEBUG_MODE:-develop,debug}"
+      XDEBUG_CONFIG: "client_host=host.docker.internal"
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/php-fpm/php.ini:/usr/local/etc/php/conf.d/custom.ini
+      - ./docker/php-fpm/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      - ./docker/php-fpm/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  nginx:
+    volumes:
+      - ./docker/nginx/ssl:/etc/nginx/ssl
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" # Для дополнительных сервисов
+
+  postgres:
+    environment:
+      POSTGRES_MULTIPLE_DATABASES: "laravel,laravel_test"
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  meilisearch:
+    ports:
+      - "7700:7700"
+      - "7701:7701" # Панель управления
+
+  mailhog:
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  # PHPMyAdmin для управления БД
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: catalog-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: postgres
+      PMA_PORT: 5432
+      PMA_ARBITRARY: 1
+    ports:
+      - "8081:80"
+    networks:
+      - catalog-network
+    depends_on:
+      - postgres
+
+  # Adminer как альтернатива
+  adminer:
+    image: adminer:latest
+    container_name: catalog-adminer
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    networks:
+      - catalog-network
+    depends_on:
+      - postgres
+
+  # Laravel Horizon для мониторинга очередей
+  horizon:
+    build:
+      context: ./docker/php-fpm
+      dockerfile: Dockerfile
+    container_name: catalog-horizon
+    restart: unless-stopped
+    command: php artisan horizon
+    working_dir: /var/www/html
+    volumes:
+      - ./src:/var/www/html
+    networks:
+      - catalog-network
+    depends_on:
+      - php-fpm
+      - redis

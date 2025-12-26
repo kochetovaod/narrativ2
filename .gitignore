@@ -1,0 +1,37 @@
+# Laravel
+/vendor/
+/node_modules/
+/public/storage
+/storage/*.key
+/.env
+/.env.*.local
+/.env.local
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+.phpunit.result.cache
+/.idea
+/.vscode
+
+# Docker
+/.dockerignore
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+/storage/logs/*.log
+
+# Backup files
+*.backup
+*.bak
+
+# IDE
+.idea/*
+!.idea/runConfigurations
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json

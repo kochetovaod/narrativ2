@@ -1,0 +1,18 @@
+services:
+  php-fpm:
+    environment:
+      APP_ENV: testing
+      DB_DATABASE: laravel_test
+      REDIS_CACHE_DB: 2
+      REDIS_QUEUE_DB: 3
+      REDIS_SESSION_DB: 4
+
+  postgres:
+    environment:
+      POSTGRES_DB: laravel_test
+    command: postgres -c max_connections=200
+
+  meilisearch:
+    environment:
+      MEILI_ENV: test
+      MEILI_NO_ANALYTICS: true

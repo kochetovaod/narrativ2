@@ -1,0 +1,121 @@
+services:
+  # PHP-FPM сервис
+  php-fpm:
+    build:
+      context: ./docker/php-fpm
+      dockerfile: Dockerfile
+    container_name: catalog-php-fpm
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/php-fpm/php.ini:/usr/local/etc/php/conf.d/custom.ini
+    networks:
+      - catalog-network
+    depends_on:
+      - postgres
+      - redis
+      - meilisearch
+
+  # Nginx сервис
+  nginx:
+    image: nginx:1.24-alpine
+    container_name: catalog-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/nginx-ssl.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - catalog-network
+    depends_on:
+      - php-fpm
+
+  # PostgreSQL сервис
+  postgres:
+    image: postgres:15-alpine
+    container_name: catalog-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-laravel}
+      POSTGRES_USER: ${DB_USERNAME:-laravel}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/backups:/backups
+    ports:
+      - "5432:5432"
+    networks:
+      - catalog-network
+
+  # Redis сервис
+  redis:
+    image: redis:7-alpine
+    container_name: catalog-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - catalog-network
+
+  # Meilisearch сервис
+  meilisearch:
+    image: getmeili/meilisearch:v1.7
+    container_name: catalog-meilisearch
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILISEARCH_KEY:-masterKey}
+      MEILI_ENV: development
+    volumes:
+      - meilisearch_data:/meili_data
+    ports:
+      - "7700:7700"
+    networks:
+      - catalog-network
+
+  # MailHog для тестирования email
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: catalog-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - catalog-network
+
+  # Composer сервис
+  composer:
+    image: composer:2.6
+    container_name: catalog-composer
+    volumes:
+      - ./src:/app
+    working_dir: /app
+    networks:
+      - catalog-network
+
+  # Node.js/NPM сервис
+  npm:
+    image: node:20-alpine
+    container_name: catalog-npm
+    volumes:
+      - ./src:/app
+    working_dir: /app
+    networks:
+      - catalog-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  meilisearch_data:
+
+
+networks:
+  catalog-network:
+    driver: bridge

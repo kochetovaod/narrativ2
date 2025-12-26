@@ -1,0 +1,228 @@
+# .github/workflows/tests.yml
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch: # Ручной запуск
+
+env:
+  COMPOSE_PROJECT_NAME: catalog-ci
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  lint:
+    name: PHP Lint & Code Style
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_pgsql, redis, gd, zip
+        coverage: none
+        tools: composer:v2
+        
+    - name: Validate composer.json
+      run: composer validate --strict
+      
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+          
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-interaction
+      
+    - name: Laravel Pint (PHP Code Style)
+      run: ./vendor/bin/pint --test
+      
+    - name: PHPStan Static Analysis
+      run: ./vendor/bin/phpstan analyse --no-progress
+
+  test:
+    name: PHPUnit Tests
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.2', '8.3']
+        include:
+          - php: '8.2'
+            composer-flags: '--ignore-platform-req=php+'
+          - php: '8.3'
+            composer-flags: ''
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: laravel
+          POSTGRES_PASSWORD: secret
+          POSTGRES_DB: laravel_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+          
+      meilisearch:
+        image: getmeili/meilisearch:v1.7
+        env:
+          MEILI_MASTER_KEY: masterKey
+          MEILI_ENV: test
+        options: >-
+          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:7700/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 7700:7700
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup PHP ${{ matrix.php }}
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php }}
+        extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_pgsql, redis, gd, zip
+        coverage: pcov
+        tools: composer:v2
+        
+    - name: Validate composer.json
+      run: composer validate --strict
+      
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-${{ matrix.php }}-
+          ${{ runner.os }}-php-
+          
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-interaction ${{ matrix.composer-flags }}
+      
+    - name: Prepare .env for testing
+      run: |
+        cp .env.testing.example .env.testing
+        sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env.testing
+        sed -i 's/REDIS_HOST=.*/REDIS_HOST=127.0.0.1/' .env.testing
+        sed -i 's/MEILISEARCH_HOST=.*/MEILISEARCH_HOST=http:\/\/127.0.0.1:7700/' .env.testing
+        sed -i 's/APP_DEBUG=.*/APP_DEBUG=false/' .env.testing
+        
+    - name: Generate application key
+      run: php artisan key:generate --env=testing
+        
+    - name: Run database migrations
+      run: |
+        php artisan migrate --env=testing --force
+        php artisan db:seed --env=testing --class=DatabaseSeeder
+        
+    - name: Run PHPUnit tests
+      run: ./vendor/bin/phpunit --coverage-clover=coverage.xml
+      env:
+        APP_ENV: testing
+        DB_HOST: 127.0.0.1
+        REDIS_HOST: 127.0.0.1
+        MEILISEARCH_HOST: http://127.0.0.1:7700
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: phpunit-results-${{ matrix.php }}
+        path: storage/logs/test*.log
+
+  build-image:
+    name: Build Docker Image
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/${{ github.repository }}
+        tags: |
+          type=ref,event=branch
+          type=sha,prefix={{branch}}-
+          
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: docker/php-fpm/Dockerfile.prod
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  notify:
+    name: Notify Status
+    needs: [lint, test, build-image]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Send Telegram notification
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: |
+          🚀 Тесты завершены
+          Репозиторий: ${{ github.repository }}
+          Ветка: ${{ github.ref_name }}
+          Результат: ${{ needs.lint.result }} ✅ / ${{ needs.test.result }} ✅
+          Ссылка: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

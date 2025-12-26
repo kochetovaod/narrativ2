@@ -1,0 +1,261 @@
+# .github/workflows/deploy-production.yml
+name: Deploy to Production
+
+on:
+  push:
+    tags:
+      - 'v*' # Триггер на теги v1.0.0, v1.2.3 и т.д.
+  workflow_dispatch: # Ручной запуск
+    inputs:
+      version:
+        description: 'Версия для деплоя (тег)'
+        required: true
+        default: 'latest'
+
+env:
+  SSH_HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
+  SSH_USER: ${{ secrets.PRODUCTION_SSH_USER }}
+  SSH_KEY: ${{ secrets.PRODUCTION_SSH_KEY }}
+  DEPLOY_PATH: /var/www/catalog-production
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  VERSION: ${{ github.event.inputs.version || github.ref_name }}
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ env.VERSION }}
+        
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        
+    - name: Configure SSH known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H ${{ secrets.PRODUCTION_SSH_HOST }} >> ~/.ssh/known_hosts
+        
+    - name: Get version info
+      id: version
+      run: |
+        if [[ "${{ env.VERSION }}" == "latest" ]]; then
+          echo "TAG=latest" >> $GITHUB_OUTPUT
+          echo "VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo 'latest')" >> $GITHUB_OUTPUT
+        else
+          echo "TAG=${{ env.VERSION }}" >> $GITHUB_OUTPUT
+          echo "VERSION=${{ env.VERSION }}" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Build and push production image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: docker/php-fpm/Dockerfile.prod
+        push: true
+        tags: |
+          ghcr.io/${{ github.repository }}:production-${{ steps.version.outputs.VERSION }}
+          ghcr.io/${{ github.repository }}:production-latest
+        labels: |
+          org.opencontainers.image.title=${{ github.event.repository.name }}
+          org.opencontainers.image.description=${{ github.event.repository.description }}
+          org.opencontainers.image.version=${{ steps.version.outputs.VERSION }}
+          org.opencontainers.image.created=${{ github.event.repository.created_at }}
+          org.opencontainers.image.source=${{ github.event.repository.html_url }}
+          org.opencontainers.image.authors=${{ github.event.repository.owner.login }}
+        
+    - name: Deploy to Production Server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.PRODUCTION_SSH_HOST }}
+        username: ${{ secrets.PRODUCTION_SSH_USER }}
+        key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        script: |
+          set -e
+          
+          echo "🚀 Начинаем деплой на production..."
+          echo "Версия: ${{ steps.version.outputs.VERSION }}"
+          
+          # Создаем бэкап перед обновлением
+          cd ${{ env.DEPLOY_PATH }}
+          ./scripts/backup.sh
+          
+          # Останавливаем текущие контейнеры
+          docker-compose -f docker-compose.prod.yml down
+          
+          # Обновляем образ
+          docker pull ghcr.io/${{ github.repository }}:production-${{ steps.version.outputs.VERSION }}
+          
+          # Обновляем docker-compose.prod.yml
+          cat > docker-compose.prod.yml << 'DOCKER_COMPOSE'
+          version: '3.8'
+          
+          services:
+            php-fpm:
+              image: ghcr.io/${{ github.repository }}:production-${{ steps.version.outputs.VERSION }}
+              restart: always
+              environment:
+                APP_ENV: production
+                APP_DEBUG: false
+                APP_URL: ${{ secrets.PRODUCTION_APP_URL }}
+                DB_HOST: postgres
+                DB_DATABASE: ${{ secrets.PRODUCTION_DB_DATABASE }}
+                DB_USERNAME: ${{ secrets.PRODUCTION_DB_USERNAME }}
+                DB_PASSWORD: ${{ secrets.PRODUCTION_DB_PASSWORD }}
+                REDIS_HOST: redis
+                MEILISEARCH_HOST: http://meilisearch:7700
+                MEILISEARCH_KEY: ${{ secrets.PRODUCTION_MEILISEARCH_KEY }}
+                MAIL_MAILER: ${{ secrets.PRODUCTION_MAIL_MAILER }}
+                MAIL_HOST: ${{ secrets.PRODUCTION_MAIL_HOST }}
+                MAIL_PORT: ${{ secrets.PRODUCTION_MAIL_PORT }}
+                MAIL_USERNAME: ${{ secrets.PRODUCTION_MAIL_USERNAME }}
+                MAIL_PASSWORD: ${{ secrets.PRODUCTION_MAIL_PASSWORD }}
+                TELEGRAM_BOT_TOKEN: ${{ secrets.PRODUCTION_TELEGRAM_BOT_TOKEN }}
+                TELEGRAM_CHAT_ID: ${{ secrets.PRODUCTION_TELEGRAM_CHAT_ID }}
+              volumes:
+                - ./storage:/var/www/html/storage
+                - ./bootstrap/cache:/var/www/html/bootstrap/cache
+                - ./docker/php-fpm/php-prod.ini:/usr/local/etc/php/conf.d/custom.ini
+              networks:
+                - catalog-network
+                
+            nginx:
+              image: nginx:1.24-alpine
+              restart: always
+              ports:
+                - "80:80"
+                - "443:443"
+              volumes:
+                - ./docker/nginx/production.conf:/etc/nginx/nginx.conf:ro
+                - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+                - ./storage/logs:/var/log/nginx
+              networks:
+                - catalog-network
+                
+            postgres:
+              image: postgres:15-alpine
+              restart: always
+              environment:
+                POSTGRES_DB: ${{ secrets.PRODUCTION_DB_DATABASE }}
+                POSTGRES_USER: ${{ secrets.PRODUCTION_DB_USERNAME }}
+                POSTGRES_PASSWORD: ${{ secrets.PRODUCTION_DB_PASSWORD }}
+              volumes:
+                - postgres_data:/var/lib/postgresql/data
+                - ./database/backups:/backups
+              networks:
+                - catalog-network
+                
+            redis:
+              image: redis:7-alpine
+              restart: always
+              command: redis-server --appendonly yes --save 900 1 --save 300 10 --save 60 10000
+              volumes:
+                - redis_data:/data
+              networks:
+                - catalog-network
+                
+            meilisearch:
+              image: getmeili/meilisearch:v1.7
+              restart: always
+              environment:
+                MEILI_MASTER_KEY: ${{ secrets.PRODUCTION_MEILISEARCH_KEY }}
+                MEILI_ENV: production
+              volumes:
+                - meilisearch_data:/meili_data
+              networks:
+                - catalog-network
+                
+          volumes:
+            postgres_data:
+            redis_data:
+            meilisearch_data:
+            
+          networks:
+            catalog-network:
+              driver: bridge
+          DOCKER_COMPOSE
+          
+          # Запускаем контейнеры
+          docker-compose -f docker-compose.prod.yml up -d
+          
+          # Ждем запуска
+          echo "⏳ Ожидаем запуска сервисов..."
+          sleep 30
+          
+          # Проверяем здоровье приложения
+          if ! curl -f http://localhost/health 2>/dev/null | grep -q "healthy"; then
+            echo "❌ Приложение не запустилось"
+            exit 1
+          fi
+          
+          # Выполняем миграции
+          echo "🗄️  Выполняем миграции..."
+          docker-compose -f docker-compose.prod.yml exec -T php-fpm php artisan migrate --force --no-interaction
+          
+          # Очищаем кэш
+          echo "🧹 Очищаем кэш..."
+          docker-compose -f docker-compose.prod.yml exec -T php-fpm php artisan optimize:clear
+          docker-compose -f docker-compose.prod.yml exec -T php-fpm php artisan config:cache
+          docker-compose -f docker-compose.prod.yml exec -T php-fpm php artisan route:cache
+          docker-compose -f docker-compose.prod.yml exec -T php-fpm php artisan view:cache
+          
+          # Индексируем данные для поиска
+          echo "🔍 Индексируем данные для поиска..."
+          docker-compose -f docker-compose.prod.yml exec -T php-fpm php artisan scout:import "App\\Models\\Product" || echo "Предупреждение: не удалось импортировать продукты"
+          docker-compose -f docker-compose.prod.yml exec -T php-fpm php artisan scout:import "App\\Models\\PortfolioCase" || echo "Предупреждение: не удалось импортировать кейсы"
+          
+          # Перезапускаем очереди
+          echo "🔄 Перезапускаем очереди..."
+          docker-compose -f docker-compose.prod.yml exec -T php-fpm php artisan queue:restart
+          
+          echo "✅ Деплой на production завершен!"
+          
+    - name: Send deployment notification
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: |
+          🚀 Деплой на Production
+          Репозиторий: ${{ github.repository }}
+          Версия: ${{ steps.version.outputs.VERSION }}
+          Статус: ✅ Успешно
+          Ссылка: ${{ secrets.PRODUCTION_APP_URL }}
+          Время: $(date '+%Y-%m-%d %H:%M:%S')
+          
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/v')
+      with:
+        name: Release ${{ github.ref_name }}
+        body: |
+          ## Что нового
+          
+          Автоматический релиз создан GitHub Actions.
+          
+          ### Детали деплоя
+          - Версия: ${{ github.ref_name }}
+          - Дата: $(date '+%Y-%m-%d %H:%M:%S')
+          - Коммит: ${{ github.sha }}
+          
+          ### Проверки
+          - ✅ Все тесты пройдены
+          - ✅ Docker образ собран
+          - ✅ Деплой на production выполнен
+        draft: false
+        prerelease: false

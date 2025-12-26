@@ -1,0 +1,377 @@
+docker/nginx/nginx.conf
+```
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log /var/log/nginx/access.log main;
+    error_log /var/log/nginx/error.log warn;
+
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+
+    # Gzip сжатие
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied expired no-cache no-store private auth;
+    gzip_types text/plain text/css text/xml text/javascript application/json application/javascript application/xml+rss application/atom+xml image/svg+xml;
+
+    include /etc/nginx/conf.d/*.conf;
+}```
+
+docker/nginx/nginx-ssl.conf
+```
+server {
+    listen 80;
+    listen 443 ssl http2;
+    server_name localhost;
+    root /var/www/html/public;
+
+    ssl_certificate /etc/nginx/ssl/localhost.crt;
+    ssl_certificate_key /etc/nginx/ssl/localhost.key;
+    
+    # Безопасность
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+    add_header X-XSS-Protection "1; mode=block";
+    add_header Referrer-Policy "strict-origin-when-cross-origin";
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()";
+
+    index index.php;
+
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    location ~ \.php$ {
+        fastcgi_pass php-fpm:9000;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+        fastcgi_hide_header X-Powered-By;
+        
+        # Увеличиваем таймауты для загрузки файлов
+        fastcgi_read_timeout 300;
+        fastcgi_send_timeout 300;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+
+    # Статические файлы с кэшированием
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|webp|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+    }
+
+    # Запрещаем доступ к скрытым файлам
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Ограничение доступа к .env
+    location ~ /\.env {
+        deny all;
+        return 404;
+    }
+
+    # Ограничиваем размер загружаемых файлов
+    client_max_body_size 100M;
+}```
+
+docker/nginx/ssl/localhost.key
+```
+-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC2c0oVR/gdSuky
+2gEw9XxE5zO9cHpyLsnnFnUe/xd4VuOigiJLHMkzhygS3REiILUkN0bin3NC7rj9
+k9R/FIWVNJ/hsiaFgUyRRh11a3OZQlG33ck/xZa4aVOvJSHXvkKbTU4r1OeNqpzh
+Zpb8xB7EgPIuyhpcyIJgokANfbNHcydoOwYPUU9WGWqlXWlGL893AKELdWjqdb33
+rnKo3dHSIHXmY+W1Y+SINK3dw+PsaouQKA/YrxqwCOmslmr0weiFTdCGduOo7GJU
+867PH8xaGbyN9yzzXXD4Lr6E8SCVeGH6FBPSESKLTpS+72/txhKJhUVJWZnQUHyj
+GJ20ZFeXAgMBAAECggEANsC/fUZ1V7kY5alVzS8GhZkKxnGgVW7kKYTsTgqIrRUK
+SEUcbIUtfliztoGAOEkvgzhRfgYS7YW9n1/DWAW9FutNhcpUVCFa7IfppEjETrx/
+0Jlu4UP3OM1nDzsp/lg7Hecjq/S/Lp0CaoRCkIV8pET8KP1+ztRfiAd5CHNuH2UV
+wF/bZOmMxUizxea9sII5inOq3H7Y/yfs5ogKf+eE4XJsGuTz/sIFt/usV3OwcPOE
+xtmAofxWBbRaBESmRI8kXXD8eJcSEQJNeLE1TOzInc8bW3AEMxUJnX+4zluQftgd
+HFufKnYnzhHl+HlgzyREvx3q1q5irYeRwV8xz7h1VQKBgQDrZ8ksIfmVLf8tEpHx
+HYnQnm6T1bJOLtm9fatNOsJvxyhKrwy1sZf4pcSutBJ7P5kdnB/0yUdA0Ag9qjdc
+ITN/3lfzyq5o/69nfwkfFplF6UUyOvl/OGBLHgHzOCYUgCC4xPjew9y+PzpLYU6f
+WHbs7TEBBc4Qt1owamOeggZP0wKBgQDGaYFTA+GdLy8L5shtybiQD6WNdwe2xfwF
+6VlLek2XC8rBATe3IPj8CAK+8eDXj1fNIyq6w9iMBFOXCc0wbpiEW0P2Nk5RdpEr
+jlmKED3s+D5Q4DAdij1G7tWI5VIsHi+Gho9Tg0UbngB2SyJEAyxNsIxKMQhnVzC2
+LP4viMRCrQKBgQDBEESASnj8LVYrrCA/ZJ9jlpxP6KIs1uXDMC7uzvMqY2cbIUfG
+OBnQVnvhYFQL+tPj4eifhPhIIpWvpUtz5tLq2vq9OgwilxhPRHPBqHIaUT9r+8wl
+16G52al1xSYOCCtN/lWxtWb0LLztl6e4rgATPlDDavRe51Ezhf2fwTnV+wKBgHyi
+qepL9d2XViZTwnO004srSQOkUeQuWjIcc0tGeJb5gVPcP/N5cu5e2dq4dlTyZmUm
+QiEwBUdvMFMghRR3ZLc/3WE8m9XwdSC3OufPbBb/maWULqVfwT5dqSVlaEjubUxE
+GqSLQU4n4oJskAnJNHtY+8dfJbhEvQSzHrkdYKvBAoGATcJHiXxHlmgmH1d7UMsX
+F5oKvGz/0w+zbrgqdhDxcHl8VBLdrXij1ToOS/S7/Jb6touRJA4Z8zLYnonTJ1ky
+zG4MM/3VbVjD0F/5Wh86l0KfRkPYlzTmB3KAYRmhycmsrK9tHzq68dnl2SJVqCEB
+NBXjvRaNdWqUf3JFbhbbGek=
+-----END PRIVATE KEY-----
+```
+
+docker/nginx/ssl/localhost.crt
+```
+-----BEGIN CERTIFICATE-----
+MIIDpTCCAo2gAwIBAgIUZKoEF6gHckjS30PuHCFY9Fi4N+UwDQYJKoZIhvcNAQEL
+BQAwYjELMAkGA1UEBhMCUlUxDzANBgNVBAgMBk1vc2NvdzEPMA0GA1UEBwwGTW9z
+Y293MRAwDgYDVQQKDAdDb21wYW55MQswCQYDVQQLDAJJVDESMBAGA1UEAwwJbG9j
+YWxob3N0MB4XDTI1MTIyNjA3MDEzMloXDTI2MTIyNjA3MDEzMlowYjELMAkGA1UE
+BhMCUlUxDzANBgNVBAgMBk1vc2NvdzEPMA0GA1UEBwwGTW9zY293MRAwDgYDVQQK
+DAdDb21wYW55MQswCQYDVQQLDAJJVDESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjAN
+BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtnNKFUf4HUrpMtoBMPV8ROczvXB6
+ci7J5xZ1Hv8XeFbjooIiSxzJM4coEt0RIiC1JDdG4p9zQu64/ZPUfxSFlTSf4bIm
+hYFMkUYddWtzmUJRt93JP8WWuGlTryUh175Cm01OK9Tnjaqc4WaW/MQexIDyLsoa
+XMiCYKJADX2zR3MnaDsGD1FPVhlqpV1pRi/PdwChC3Vo6nW9965yqN3R0iB15mPl
+tWPkiDSt3cPj7GqLkCgP2K8asAjprJZq9MHohU3QhnbjqOxiVPOuzx/MWhm8jfcs
+811w+C6+hPEglXhh+hQT0hEii06Uvu9v7cYSiYVFSVmZ0FB8oxidtGRXlwIDAQAB
+o1MwUTAdBgNVHQ4EFgQU/5ZrqJD0312/EyAnUt/HWsR6wnAwHwYDVR0jBBgwFoAU
+/5ZrqJD0312/EyAnUt/HWsR6wnAwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0B
+AQsFAAOCAQEAMnU/0C9MufMy+P+5EAc9tRTHnV745XZZfBeLx+R+G8JCUNyhjB+L
+gugKD2XW3MNZ5hKnnOPzjQlLWvTzy7RDzV7+GZ9y9jNDuC893p1et8c/kKbBSXiK
+fH1uipm45hkc70QjkkFYGDk9x3uWupw0n941OGGu00Fk7CUatHp2qVLFp1wdDNFA
+ndMVUGSkrBI/0hydo58lG6m6KzsVFMaAsst53DpmY0mn4rnQ0dcx0nQ9/ATueSu+
+JEUt7boBItiNuDPYqizn9dWhyMyJn6nfxezPOCuVXblS3skyh+TZEQiM5LwQGZl9
+gtELBVawPYC4LlCc/3OQKtGDoQ1L0zfVjg==
+-----END CERTIFICATE-----
+```
+
+docker/php-fpm/Dockerfile
+```
+FROM php:8.3-fpm-alpine
+
+# Устанавливаем системные зависимости
+RUN apk update && apk add --no-cache \
+    git \
+    curl \
+    libpng-dev \
+    libwebp-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    oniguruma-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    postgresql-dev \
+    libzip-dev \
+    icu-dev \
+    postgresql-client \
+    supervisor \
+    && docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype \
+    && docker-php-ext-install pdo pdo_pgsql pgsql gd mbstring exif pcntl bcmath zip intl xml soap \
+    && apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del -f .build-deps
+
+# Устанавливаем Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Устанавливаем Node.js и npm (для Laravel Mix/Vite)
+RUN apk add --no-cache nodejs npm
+
+# Устанавливаем дополнительные инструменты
+RUN apk add --no-cache bash vim
+
+# Устанавливаем рабочую директорию
+WORKDIR /var/www/html
+
+# Настройка пользователя
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+RUN addgroup -g ${GROUP_ID} laravel && \
+    adduser -u ${USER_ID} -G laravel -g laravel -s /bin/sh -D laravel
+
+# Создаем необходимые директории
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chown -R laravel:laravel /var/www/html && \
+    chmod -R 755 /var/www/html/storage && \
+    chmod -R 755 /var/www/html/bootstrap/cache
+
+# Копируем конфигурации
+COPY php.ini /usr/local/etc/php/conf.d/custom.ini
+COPY xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Меняем владельца рабочей директории
+RUN chown -R laravel:laravel /var/www/html
+RUN mkdir -p /var/log/supervisor /var/ru
+USER root
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]```
+
+docker/php-fpm/php.ini
+```
+memory_limit = 512M
+upload_max_filesize = 100M
+post_max_size = 100M
+max_execution_time = 300
+max_input_time = 300
+
+display_errors = Off
+display_startup_errors = Off
+error_reporting = E_ALL
+log_errors = On
+
+date.timezone = Europe/Moscow
+
+opcache.enable = 1
+opcache.memory_consumption = 256
+opcache.interned_strings_buffer = 16
+opcache.max_accelerated_files = 10000
+opcache.revalidate_freq = 2
+opcache.fast_shutdown = 1
+```
+
+docker/php-fpm/xdebug.ini
+```
+zend_extension=xdebug.so
+xdebug.mode=develop,debug
+xdebug.start_with_request=yes
+xdebug.client_port=9003
+xdebug.client_host=host.docker.internal
+xdebug.idekey=VSCODE
+xdebug.log=/var/www/html/storage/logs/xdebug.log
+xdebug.log_level=0
+```
+
+docker/php-fpm/supervisord.conf
+```
+[supervisord]
+nodaemon=true
+logfile=/var/log/supervisor/supervisord.log
+pidfile=/var/run/supervisord.pid
+
+[program:php-fpm]
+command=/usr/local/sbin/php-fpm -R
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+[program:queue]
+command=php /var/www/html/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+user=laravel
+stdout_logfile=/var/www/html/storage/logs/queue.out.log
+stdout_logfile_maxbytes=0
+stderr_logfile=/var/www/html/storage/logs/queue.err.log
+stderr_logfile_maxbytes=0
+```
+
+docker/php-fpm/Dockerfile.prod
+```
+FROM php:8.3-fpm-alpine as base
+
+# Устанавливаем системные зависимости
+RUN apk update && apk add --no-cache \
+    git \
+    curl \
+    libpng-dev \
+    libwebp-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    oniguruma-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    postgresql-dev \
+    libzip-dev \
+    icu-dev \
+    && docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype \
+    && docker-php-ext-install pdo pdo_pgsql pgsql gd mbstring exif pcntl bcmath zip intl xml soap opcache \
+    && apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del -f .build-deps
+
+# Настраиваем OpCache для продакшена
+RUN { \
+    echo 'opcache.enable=1'; \
+    echo 'opcache.memory_consumption=256'; \
+    echo 'opcache.interned_strings_buffer=16'; \
+    echo 'opcache.max_accelerated_files=10000'; \
+    echo 'opcache.revalidate_freq=2'; \
+    echo 'opcache.fast_shutdown=1'; \
+    echo 'opcache.enable_cli=1'; \
+    } > /usr/local/etc/php/conf.d/opcache.ini
+
+WORKDIR /var/www/html
+
+# Компиляция статики
+FROM node:20-alpine as node
+
+WORKDIR /var/www/html
+COPY src/package*.json ./
+RUN npm ci --only=production
+COPY src/resources ./resources
+COPY src/vite.config.js .
+RUN npm run build
+
+# Финальный образ
+FROM base as final
+
+# Копируем файлы проекта
+COPY src /var/www/html
+COPY --from=node /var/www/html/public/build /var/www/html/public/build
+
+# Копируем Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Устанавливаем зависимости
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+# Настраиваем права
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/bootstrap/cache
+
+# Копируем конфигурацию
+COPY php-prod.ini /usr/local/etc/php/conf.d/custom.ini
+
+USER www-data
+
+CMD ["php-fpm"]```
+
+docker/.env.docker
+```
+# Docker специфичные переменные
+COMPOSE_PROJECT_NAME=catalog
+COMPOSE_FILE=docker-compose.yml:docker-compose.dev.yml
+
+# Настройки пользователя (для корректных прав доступа)
+USER_ID=1000
+GROUP_ID=1000
+
+# Настройки XDebug
+XDEBUG_MODE=develop,debug
+XDEBUG_CONFIG="client_host=host.docker.internal"```
+
+docker/all_files.txt
+```
+```
+

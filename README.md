@@ -2,69 +2,130 @@
 
 Корпоративный сайт-каталог и витрина экспертизы для презентации продукции/услуг, кейсов и производственных возможностей.
 
+## 🧱 Технологический стек
+
+- Laravel, PHP 8.3 (php-fpm)
+- PostgreSQL 15
+- Redis 7
+- Meilisearch v1.7
+- Nginx
+- MailHog
+- Node.js 20 (для сборки фронтенда)
+- Docker + Docker Compose
+
 ## 🚀 Быстрый старт
 
 ### Предварительные требования
 - Docker и Docker Compose
 - Git
 
-### Установка
-
+### Локальный запуск через `make` (рекомендуется)
 1. Клонируйте репозиторий:
-```bash
-git clone <repository-url>
-cd narrativ
-```
+   ```bash
+   git clone <repository-url>
+   cd narrativ
+   ```
+2. Подготовьте окружение (копирование `.env` файлов, создание `database/backups`, сборка контейнеров, установка зависимостей, генерация `APP_KEY`):
+   ```bash
+   make setup
+   ```
+   Скрипт `scripts/setup.sh` выполнит шаги из Makefile, поэтому отдельные команды `cp src/.env.example src/.env` и т.д. запускать не нужно.
+3. Запустите проект и убедитесь, что сервисы работают:
+   ```bash
+   make up
+   make ps
+   ```
 
-2. Настройка окружения:
+### Локальный запуск напрямую через Docker Compose
+Если `make` недоступен, выполните команды вручную:
 ```bash
 cp src/.env.example src/.env
 cp src/.env.testing.example src/.env.testing
-make setup
+docker-compose build
+docker-compose up -d
+docker-compose exec -T php-fpm composer install --working-dir=/var/www/html --no-interaction --prefer-dist
+docker-compose exec -T php-fpm npm ci
+docker-compose exec php-fpm php artisan key:generate
+docker-compose exec php-fpm php artisan storage:link
 ```
 
-3. Запустите проект:
-```bash
-make up
-```
-
-### Доступные команды
+### Доступные команды Make
 
 ```bash
-make help        # Список команд
-make install     # Установка зависимостей
-make build       # Сборка Docker образов
-make up          # Запуск контейнеров
-make down        # Остановка контейнеров
-make logs        # Просмотр логов
-make test        # Запуск тестов
+make help         # Список команд
+make install      # Установка зависимостей
+make build        # Сборка Docker образов
+make up           # Запуск контейнеров
+make down         # Остановка контейнеров
+make logs         # Просмотр логов
+make test         # Запуск тестов
+make backup       # Создание бэкапа (scripts/backup/backup.sh)
+make deploy       # Деплой на staging (scripts/deploy/deploy.sh staging)
+make deploy-prod  # Деплой на production (scripts/deploy/deploy.sh production)
 ```
 
 ## ⚙️ Переменные окружения
 
-- Примеры окружения находятся внутри Laravel-приложения: `src/.env.example` (локальная разработка/Docker) и `src/.env.testing.example` (CI и тесты). Скопируйте их перед запуском (`cp src/.env.example src/.env` и `cp src/.env.testing.example src/.env.testing`), затем при необходимости обновите значения под ваше окружение.
-- Базовый набор переменных:
-  - **Приложение:** `APP_NAME`, `APP_ENV`, `APP_URL`, `APP_DEBUG`, `APP_KEY`.
-  - **PostgreSQL:** `DB_CONNECTION=pgsql`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` (по умолчанию совпадают с сервисами docker-compose).
-  - **Redis и очереди:** `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB`, `REDIS_CACHE_DB`, `QUEUE_CONNECTION`, `REDIS_QUEUE`, `REDIS_QUEUE_RETRY_AFTER`.
-  - **Meilisearch/Scout:** `SCOUT_DRIVER=meilisearch`, `MEILISEARCH_HOST`, `MEILISEARCH_KEY`.
-  - **Почта:** `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` (по умолчанию MailHog).
-  - **Интеграции:** `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, параметры AWS/S3 при использовании внешнего хранилища.
-- Laravel-приложение находится в `src/`: `make install`, `make test` и команды из Makefile ожидают `.env` и `.env.testing` именно в этой папке, а Composer запускается из контейнера `php-fpm`.
+- Файлы окружения находятся в `src/.env` и `src/.env.testing`. Примеры — `src/.env.example` и `src/.env.testing.example`.
+- `APP_KEY` генерируется автоматически при `make setup` или командой `docker-compose exec php-fpm php artisan key:generate`.
+- Основные группы переменных:
+  - Приложение: `APP_NAME`, `APP_ENV`, `APP_URL`, `APP_DEBUG`, `APP_KEY`.
+  - База данных: `DB_CONNECTION=pgsql`, `DB_HOST=postgres`, `DB_PORT=5432`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`.
+  - Redis/очереди: `REDIS_HOST=redis`, `REDIS_PORT=6379`, `QUEUE_CONNECTION=redis`, `REDIS_QUEUE`, `REDIS_QUEUE_RETRY_AFTER`.
+  - Поиск: `SCOUT_DRIVER=meilisearch`, `MEILISEARCH_HOST=http://meilisearch:7700`, `MEILISEARCH_KEY`.
+  - Почта: `MAIL_MAILER=smtp`, `MAIL_HOST=mailhog`, `MAIL_PORT=1025`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`.
+  - Интеграции: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, AWS/S3 при использовании внешнего хранилища.
+
+Пример `.env` для локальной разработки (Docker):
+
+```env
+APP_NAME=Narrativ
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=https://localhost
+APP_KEY=
+
+DB_CONNECTION=pgsql
+DB_HOST=postgres
+DB_PORT=5432
+DB_DATABASE=laravel
+DB_USERNAME=laravel
+DB_PASSWORD=secret
+
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_QUEUE=default
+REDIS_QUEUE_RETRY_AFTER=90
+
+SCOUT_DRIVER=meilisearch
+MEILISEARCH_HOST=http://meilisearch:7700
+MEILISEARCH_KEY=masterKey
+
+MAIL_MAILER=smtp
+MAIL_HOST=mailhog
+MAIL_PORT=1025
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
+```
 
 ## 📁 Структура проекта
 
 ```
 narrativ/
 ├── src/                    # Laravel приложение
-├── docker/                # Docker конфигурации
-│   ├── nginx/            # Nginx конфиги
-│   └── php-fpm/          # PHP-FPM конфиги
-├── docs/                  # Документация
+├── docker/                 # Docker конфигурации
+│   ├── nginx/             # Nginx конфиги
+│   └── php-fpm/           # PHP-FPM конфиги
+├── docs/                  # Документация (CI/CD)
 ├── tests/                 # Тесты
 ├── scripts/               # Вспомогательные скрипты
+│   ├── backup/backup.sh   # Создание бэкапов
+│   └── deploy/deploy.sh   # Деплой staging/prod
 ├── .github/workflows/     # GitHub Actions
-└── database/backups/      # Бэкапы БД
+└── database/backups/      # Хранилище бэкапов (монтируется в /backups в контейнере postgres)
 ```
 
 ## 🌐 Доступ к сервисам
@@ -83,6 +144,32 @@ narrativ/
 - **redis**: Redis 7
 - **meilisearch**: Поисковый движок
 - **mailhog**: Тестовый SMTP сервер
+
+## 💾 Бэкапы и восстановление
+
+- Создание бэкапа: `make backup` (запускает `scripts/backup/backup.sh`). Бэкапы складываются в `database/backups` (монтируется как `/backups` в контейнере `postgres`) и хранятся 7 дней. Файлы: `db_<timestamp>.sql`, `media_<timestamp>.tar.gz`, `logs_<timestamp>.tar.gz`.
+- Восстановление:
+  1. Скопируйте нужные архивы/дампы в `database/backups`.
+  2. База данных:
+     ```bash
+     docker-compose exec -T postgres psql -U ${DB_USERNAME:-laravel} -d ${DB_DATABASE:-laravel} < database/backups/db_YYYYMMDD_HHMMSS.sql
+     ```
+  3. Медиа-файлы:
+     ```bash
+     tar -xzf database/backups/media_YYYYMMDD_HHMMSS.tar.gz -C src/storage/app/public
+     ```
+  4. (Опционально) логи:
+     ```bash
+     tar -xzf database/backups/logs_YYYYMMDD_HHMMSS.tar.gz -C src/storage/logs
+     ```
+  5. Очистите кеши после восстановления: `docker-compose exec -T php-fpm php artisan optimize:clear`.
+
+## 🚢 Деплой (staging/production)
+
+- Скрипт: `scripts/deploy/deploy.sh <staging|production>`.
+- Быстрый запуск: `make deploy` (staging) или `make deploy-prod` (production).
+- Скрипт обновляет код (`git pull origin main`), ставит зависимости `composer install --no-dev` и `npm ci --only=production`, собирает фронтенд (`npm run build`), выполняет миграции с `--force`, очищает кеши, перезапускает очереди и переиндексирует поиск (`scout:import` для `Product`, `PortfolioCase`, `Service`).
+- Запускайте на целевом сервере с корректно настроенными `.env` и доступом к Docker Compose; используйте тот же набор Compose файлов, что и для приложения.
 
 ## 🔧 Разработка
 
@@ -109,9 +196,7 @@ docker-compose exec php-fpm php artisan optimize:clear
 ## 📝 Документация
 
 Полная документация проекта находится в папке `docs/`:
-- [Техническое задание](docs/technical-spec.md)
-- [API документация](docs/api/)
-- [Руководство по развертыванию](docs/deployment/)
+- [CI/CD](docs/ci-cd/README.md)
 
 ## 🐛 Отладка
 

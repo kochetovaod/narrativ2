@@ -219,6 +219,7 @@ docker-compose exec php-fpm php artisan optimize:clear
 ## 📝 Документация
 
 Полная документация проекта находится в папке `docs/`:
+- [ADR: Настройка панели Orchid](docs/adr/2025-12-26-orchid-setup.md)
 - [CI/CD](docs/ci-cd/README.md)
 
 ## 🐛 Отладка

@@ -30,26 +30,26 @@ fi
 
 # Копируем примеры файлов окружения
 echo "📝 Настройка переменных окружения..."
-if [ ! -f .env ]; then
-    if [ -f .env.example ]; then
-        cp .env.example .env
-        echo "✅ Файл .env создан из примера"
+if [ ! -f src/.env ]; then
+    if [ -f src/.env.example ]; then
+        cp src/.env.example src/.env
+        echo "✅ Файл src/.env создан из примера"
     else
-        echo "⚠️  Пример .env.example не найден, пропускаю копирование"
+        echo "⚠️  Пример src/.env.example не найден, пропускаю копирование"
     fi
 else
-    echo "✅ Файл .env уже существует"
+    echo "✅ Файл src/.env уже существует"
 fi
 
-if [ ! -f .env.testing ]; then
-    if [ -f .env.testing.example ]; then
-        cp .env.testing.example .env.testing
-        echo "✅ Файл .env.testing создан из примера"
+if [ ! -f src/.env.testing ]; then
+    if [ -f src/.env.testing.example ]; then
+        cp src/.env.testing.example src/.env.testing
+        echo "✅ Файл src/.env.testing создан из примера"
     else
-        echo "⚠️  Пример .env.testing.example не найден, пропускаю копирование"
+        echo "⚠️  Пример src/.env.testing.example не найден, пропускаю копирование"
     fi
 else
-    echo "✅ Файл .env.testing уже существует"
+    echo "✅ Файл src/.env.testing уже существует"
 fi
 
 # Создаем папки для логов
@@ -82,7 +82,7 @@ fi
 
 # Установка зависимостей Laravel
 echo "📦 Установка PHP зависимостей..."
-docker-compose exec -T php-fpm composer install --no-interaction --prefer-dist
+docker-compose exec -T php-fpm composer install --working-dir=/var/www/html --no-interaction --prefer-dist
 
 echo "📦 Установка Node.js зависимостей..."
 docker-compose exec -T php-fpm npm ci

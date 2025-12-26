@@ -24,7 +24,8 @@ help:
 
 install:
 	@echo "📦 Установка зависимостей..."
-	docker-compose run --rm composer install
+	docker-compose up -d php-fpm
+	docker-compose exec -T php-fpm composer install --working-dir=/var/www/html --no-interaction --prefer-dist
 	docker-compose run --rm npm install
 
 build:
@@ -46,7 +47,8 @@ logs-f:
 	docker-compose logs -f
 
 test:
-	docker-compose exec php-fpm ./vendor/bin/phpunit
+	docker-compose up -d php-fpm
+	docker-compose exec -T php-fpm ./vendor/bin/phpunit
 
 setup:
 	@chmod +x scripts/setup.sh
@@ -56,7 +58,8 @@ artisan:
 	docker-compose exec php-fpm php artisan $(cmd)
 
 composer:
-	docker-compose run --rm composer $(cmd)
+	docker-compose up -d php-fpm
+	docker-compose exec -T php-fpm composer --working-dir=/var/www/html $(cmd)
 
 npm:
 	docker-compose run --rm npm $(cmd)

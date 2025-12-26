@@ -12,6 +12,7 @@ use Throwable;
 class TelegramHandler extends AbstractProcessingHandler
 {
     private ?BotApi $bot;
+
     private ?string $chatId;
 
     public function __construct(?string $botToken, ?string $chatId, int|string|Level $level = Level::Error, bool $bubble = true)

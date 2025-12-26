@@ -9,8 +9,6 @@ class TelegramLogger
 {
     /**
      * Create a custom Monolog instance.
-     *
-     * @return \Monolog\Logger
      */
     public function __invoke(array $config): Logger
     {
@@ -21,7 +19,7 @@ class TelegramLogger
         );
 
         $handler->setFormatter(new LineFormatter(
-            format: "%level_name%: %message% %context% %extra%",
+            format: '%level_name%: %message% %context% %extra%',
             dateFormat: null,
             allowInlineLineBreaks: true,
             ignoreEmptyContextAndExtra: true

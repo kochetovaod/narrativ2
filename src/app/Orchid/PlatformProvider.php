@@ -2,7 +2,6 @@
 
 namespace App\Orchid;
 
-use App\Orchid\Screens\DashboardScreen;
 use Orchid\Platform\Dashboard;
 use Orchid\Platform\ItemPermission;
 use Orchid\Platform\OrchidServiceProvider;

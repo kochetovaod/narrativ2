@@ -2,19 +2,25 @@
 
 return [
 
-    'disk_name' => env('MEDIA_DISK', 'public'),
+    'disk_name' => env('MEDIA_DISK', 'media'),
 
-    'disk' => env('MEDIA_DISK', 'public'),
+    'disk' => env('MEDIA_DISK', 'media'),
 
-    'conversions_disk' => env('MEDIA_CONVERSIONS_DISK', 'public'),
+    'conversions_disk' => env('MEDIA_CONVERSIONS_DISK', env('MEDIA_DISK', 'media')),
 
-    'max_file_size' => 1024 * 1024 * 10, // 10MB
+    'temporary_directory_path' => storage_path('media-library/temp'),
+
+    'max_file_size' => (int) env('MEDIA_MAX_FILE_SIZE', 1024 * 1024 * 20),
 
     'accepts_file' => 'image/*,application/pdf',
 
     'path_generator' => Spatie\MediaLibrary\Support\PathGenerator\DefaultPathGenerator::class,
 
-    'queue_conversions_by_default' => env('QUEUE_CONVERSIONS', true),
+    'file_namer' => Spatie\MediaLibrary\Support\FileNamer\DefaultFileNamer::class,
+
+    'media_model' => Spatie\MediaLibrary\MediaCollections\Models\Media::class,
+
+    'queue_conversions_by_default' => (bool) env('MEDIA_QUEUE_CONVERSIONS', true),
 
     'remote' => [
         'extra_headers' => [
@@ -29,6 +35,7 @@ return [
         'tiny_placeholder_blur_amount' => 12,
 
         'cache_directory_prefix' => 'media/cache/',
+        'default_size_on_queue' => true,
 
     ],
 

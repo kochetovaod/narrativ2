@@ -92,6 +92,7 @@ ENV=<dev|staging|test|production> make <target> # запуск с нужным �
   - Приложение: `APP_NAME`, `APP_ENV`, `APP_URL`, `APP_DEBUG`, `APP_KEY`.
   - База данных: `DB_CONNECTION=pgsql`, `DB_HOST=postgres`, `DB_PORT=5432`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`.
   - Redis/очереди: `REDIS_HOST=redis`, `REDIS_PORT=6379`, `QUEUE_CONNECTION=redis`, `REDIS_QUEUE`, `REDIS_QUEUE_RETRY_AFTER`.
+  - Медиа: `MEDIA_DISK` (по умолчанию `media`), `MEDIA_CONVERSIONS_DISK`, `MEDIA_MAX_FILE_SIZE` (в байтах), `MEDIA_QUEUE_CONVERSIONS`.
   - Поиск: `SCOUT_DRIVER=meilisearch`, `MEILISEARCH_HOST=http://meilisearch:7700`, `MEILISEARCH_KEY`.
   - Почта: `MAIL_MAILER=smtp`, `MAIL_HOST=mailhog`, `MAIL_PORT=1025`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`.
   - Интеграции: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, AWS/S3 при использовании внешнего хранилища.
@@ -181,6 +182,7 @@ narrativ/
      ```bash
      tar -xzf database/backups/media_YYYYMMDD_HHMMSS.tar.gz -C src/storage/app/public
      ```
+     Архив содержит публичное хранилище (`storage/app/public`) вместе с коллекциями и конверсиями медиафайлов.
   4. (Опционально) логи:
      ```bash
      tar -xzf database/backups/logs_YYYYMMDD_HHMMSS.tar.gz -C src/storage/logs

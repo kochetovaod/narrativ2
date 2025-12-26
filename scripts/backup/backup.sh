@@ -4,6 +4,7 @@ set -e
 
 BACKUP_DIR="/backups"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+MEDIA_STORAGE_PATH="src/storage/app/public"
 
 echo "💾 Начало создания бэкапа..."
 
@@ -13,7 +14,8 @@ docker-compose exec -T postgres pg_dump -U laravel laravel > "${BACKUP_DIR}/db_$
 
 # Создаем бэкап медиа файлов
 echo "📁 Создание бэкапа медиа файлов..."
-tar -czf "${BACKUP_DIR}/media_${TIMESTAMP}.tar.gz" -C src/storage/app/public .
+mkdir -p "${MEDIA_STORAGE_PATH}"/media/conversions
+tar -czf "${BACKUP_DIR}/media_${TIMESTAMP}.tar.gz" -C "${MEDIA_STORAGE_PATH}" .
 
 # Создаем бэкап логов
 echo "📋 Создание бэкапа логов..."

@@ -70,6 +70,10 @@ ${COMPOSE_CMD} exec -T php-fpm npm ci --only=production
 echo "🎨 Сборка фронтенда..."
 ${COMPOSE_CMD} exec -T php-fpm npm run build
 
+# Обновляем симлинк на хранилище
+echo "🔗 Обновление публичного хранилища..."
+${COMPOSE_CMD} exec -T php-fpm php artisan storage:link
+
 # Запускаем миграции
 echo "🗄️  Выполнение миграций..."
 ${COMPOSE_CMD} exec -T php-fpm php artisan migrate --force

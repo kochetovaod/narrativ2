@@ -85,6 +85,9 @@ fi
 echo "📁 Создание структуры папок..."
 mkdir -p src/storage/logs
 mkdir -p src/storage/framework/{cache,sessions,views}
+mkdir -p src/storage/app/{public,private}
+mkdir -p src/storage/app/public/media/{conversions,tmp}
+mkdir -p src/storage/media-library/temp
 mkdir -p src/bootstrap/cache
 mkdir -p database/backups
 

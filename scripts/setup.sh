@@ -2,9 +2,41 @@
 
 set -e
 
-echo "🚀 Начало настройки проекта..."
+ENVIRONMENT="${ENV:-dev}"
 
-COMPOSE_CMD="docker-compose -f docker-compose.yml -f docker-compose.dev.yml"
+echo "🚀 Начало настройки проекта для окружения: ${ENVIRONMENT}..."
+
+case "${ENVIRONMENT}" in
+    production)
+        COMPOSE_FILES="-f docker-compose.yml -f docker-compose.prod.yml"
+        ENV_FILE="src/.env.production"
+        ;;
+    staging)
+        COMPOSE_FILES="-f docker-compose.yml -f docker-compose.dev.yml"
+        ENV_FILE="src/.env.staging"
+        ;;
+    test|testing)
+        COMPOSE_FILES="-f docker-compose.yml -f docker-compose.test.yml"
+        ENV_FILE="src/.env.testing"
+        ;;
+    dev|development|local)
+        COMPOSE_FILES="-f docker-compose.yml -f docker-compose.dev.yml"
+        ENV_FILE="src/.env"
+        ;;
+    *)
+        echo "❌ Неизвестное окружение ${ENVIRONMENT}. Используйте dev, staging, test или production."
+        exit 1
+        ;;
+esac
+
+if [ -f "${ENV_FILE}" ]; then
+    COMPOSE_ENV_FILE="--env-file ${ENV_FILE}"
+else
+    echo "⚠️  Файл ${ENV_FILE} не найден, будут использованы переменные окружения из shell."
+    COMPOSE_ENV_FILE=""
+fi
+
+COMPOSE_CMD="docker-compose ${COMPOSE_ENV_FILE} ${COMPOSE_FILES}"
 
 # Проверяем наличие Docker
 if ! command -v docker &> /dev/null; then
@@ -32,26 +64,21 @@ fi
 
 # Копируем примеры файлов окружения
 echo "📝 Настройка переменных окружения..."
-if [ ! -f src/.env ]; then
+if [ ! -f "${ENV_FILE}" ]; then
     if [ -f src/.env.example ]; then
-        cp src/.env.example src/.env
-        echo "✅ Файл src/.env создан из примера"
+        cp src/.env.example "${ENV_FILE}"
+        echo "✅ Файл ${ENV_FILE} создан из примера"
     else
         echo "⚠️  Пример src/.env.example не найден, пропускаю копирование"
     fi
 else
-    echo "✅ Файл src/.env уже существует"
+    echo "✅ Файл ${ENV_FILE} уже существует"
 fi
 
-if [ ! -f src/.env.testing ]; then
-    if [ -f src/.env.testing.example ]; then
-        cp src/.env.testing.example src/.env.testing
-        echo "✅ Файл src/.env.testing создан из примера"
-    else
-        echo "⚠️  Пример src/.env.testing.example не найден, пропускаю копирование"
-    fi
-else
-    echo "✅ Файл src/.env.testing уже существует"
+# Тестовый .env оставляем для phpunit, даже если находимся не в test окружении
+if [ ! -f src/.env.testing ] && [ -f src/.env.testing.example ]; then
+    cp src/.env.testing.example src/.env.testing
+    echo "✅ Файл src/.env.testing создан из примера"
 fi
 
 # Создаем папки для логов

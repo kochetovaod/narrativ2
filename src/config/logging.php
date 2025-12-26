@@ -4,6 +4,7 @@ use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
 use Monolog\Processor\PsrLogMessageProcessor;
+use App\Logging\TelegramLogger;
 
 return [
 
@@ -56,6 +57,12 @@ return [
             'driver' => 'stack',
             'channels' => explode(',', env('LOG_STACK', 'single')),
             'ignore_exceptions' => false,
+        ],
+
+        'telegram' => [
+            'driver' => 'custom',
+            'via' => App\Logging\TelegramLogger::class,
+            'level' => env('LOG_TELEGRAM_LEVEL', 'error'),
         ],
 
         'single' => [

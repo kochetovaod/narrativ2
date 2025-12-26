@@ -35,6 +35,7 @@
    make up-dev
    make ps
    ```
+   Для других окружений укажите `ENV`, например: `ENV=staging make up`, `ENV=production make up`.
 
 ### Локальный запуск напрямую через Docker Compose
 Если `make` недоступен, выполните команды вручную:
@@ -60,13 +61,32 @@ make down         # Остановка контейнеров
 make logs         # Просмотр логов
 make test         # Запуск тестов
 make backup       # Создание бэкапа (scripts/backup/backup.sh)
-make deploy       # Деплой на staging (scripts/deploy/deploy.sh staging)
-make deploy-prod  # Деплой на production (scripts/deploy/deploy.sh production)
+make deploy       # Деплой (ENV=staging по умолчанию, scripts/deploy/deploy.sh)
+make deploy-prod  # Деплой на production (эквивалент ENV=production make deploy)
+ENV=<dev|staging|test|production> make <target> # запуск с нужным набором compose-файлов и .env
 ```
+
+### Выбор окружения (ENV)
+
+- `ENV` управляет набором Compose-файлов и подключаемым `.env`:
+  - `dev` (значение по умолчанию): `docker-compose.yml` + `docker-compose.dev.yml`, `.env`
+  - `staging`: `docker-compose.yml` + `docker-compose.dev.yml`, `.env.staging`
+  - `test`: `docker-compose.yml` + `docker-compose.test.yml`, `.env.testing`
+  - `production`: `docker-compose.yml` + `docker-compose.prod.yml`, `.env.production`
+- Для деплоя дополнительно выбирается ветка: `develop` для `dev/staging/test`, `main` для `production` (можно переопределить `BRANCH`).
+- Примеры:
+  - `ENV=staging make up` — поднять контейнеры в staging-контуре с переменными из `.env.staging`
+  - `ENV=production make deploy-prod` — деплой прод с `docker-compose.prod.yml` и `.env.production`
+  - `BRANCH=release/1.2 ENV=staging make deploy` — деплой конкретной ветки на staging
 
 ## ⚙️ Переменные окружения
 
-- Файлы окружения находятся в `src/.env` и `src/.env.testing`. Примеры — `src/.env.example` и `src/.env.testing.example`.
+- Файлы окружения:
+  - `src/.env` — локальная разработка (`ENV=dev`)
+  - `src/.env.staging` — staging (`ENV=staging`)
+  - `src/.env.testing` — тесты/act (`ENV=test`)
+  - `src/.env.production` — production (`ENV=production`)
+- Примеры — `src/.env.example` и `src/.env.testing.example` (можно копировать под нужное имя).
 - `APP_KEY` генерируется автоматически при `make setup` или командой `docker-compose exec php-fpm php artisan key:generate`.
 - Основные группы переменных:
   - Приложение: `APP_NAME`, `APP_ENV`, `APP_URL`, `APP_DEBUG`, `APP_KEY`.
@@ -169,9 +189,9 @@ narrativ/
 
 ## 🚢 Деплой (staging/production)
 
-- Скрипт: `scripts/deploy/deploy.sh <staging|production>`.
-- Быстрый запуск: `make deploy` (staging) или `make deploy-prod` (production).
-- Скрипт обновляет код (`git pull origin main`), ставит зависимости `composer install --no-dev` и `npm ci --only=production`, собирает фронтенд (`npm run build`), выполняет миграции с `--force`, очищает кеши, перезапускает очереди и переиндексирует поиск (`scout:import` для `Product`, `PortfolioCase`, `Service`).
+- Скрипт: `ENV=<dev|staging|test|production> scripts/deploy/deploy.sh` (по умолчанию `staging`, `BRANCH` можно переопределить).
+- Быстрый запуск: `ENV=staging make deploy` или `ENV=production make deploy-prod`.
+- Скрипт выбирает ветку (`develop` для dev/staging/test, `main` для production), читает соответствующий `.env`, использует правильные Compose-файлы, обновляет код, собирает/загружает образы, поднимает контейнеры, ставит зависимости (`composer install --no-dev`, `npm ci --only=production`), собирает фронтенд, выполняет миграции с `--force`, очищает кеши, перезапускает очереди и переиндексирует поиск (`scout:import` для `Product`, `PortfolioCase`, `Service`).
 - Запускайте на целевом сервере с корректно настроенными `.env` и доступом к Docker Compose; используйте тот же набор Compose файлов, что и для приложения.
 
 ## 🔧 Разработка

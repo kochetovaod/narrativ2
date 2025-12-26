@@ -31,25 +31,47 @@ jobs:
         tools: composer:v2
         
     - name: Validate composer.json
+      working-directory: src
       run: composer validate --strict
       
     - name: Cache Composer packages
       id: composer-cache
       uses: actions/cache@v3
       with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        path: src/vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('src/composer.lock') }}
         restore-keys: |
           ${{ runner.os }}-php-
           
     - name: Install dependencies
+      working-directory: src
       run: composer install --prefer-dist --no-progress --no-interaction
       
+    - name: Install PHPStan
+      run: composer global require phpstan/phpstan:^2.1 --no-progress --no-interaction
+      
+    - name: Cache Node modules
+      id: node-cache
+      uses: actions/cache@v3
+      with:
+        path: src/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('src/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+      
+    - name: Install Node dependencies
+      working-directory: src
+      run: npm ci --prefer-offline --no-progress
+      
     - name: Laravel Pint (PHP Code Style)
+      working-directory: src
       run: ./vendor/bin/pint --test
       
     - name: PHPStan Static Analysis
-      run: ./vendor/bin/phpstan analyse --no-progress
+      working-directory: src
+      run: |
+        PHPSTAN_BIN="$(composer global config bin-dir --absolute)/phpstan"
+        $PHPSTAN_BIN analyse --no-progress
 
   test:
     name: PHPUnit Tests
@@ -115,49 +137,47 @@ jobs:
         tools: composer:v2
         
     - name: Validate composer.json
+      working-directory: src
       run: composer validate --strict
       
     - name: Cache Composer packages
       id: composer-cache
       uses: actions/cache@v3
       with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
+        path: src/vendor
+        key: ${{ runner.os }}-php-${{ matrix.php }}-${{ hashFiles('src/composer.lock') }}
         restore-keys: |
           ${{ runner.os }}-php-${{ matrix.php }}-
           ${{ runner.os }}-php-
           
     - name: Install dependencies
+      working-directory: src
       run: composer install --prefer-dist --no-progress --no-interaction ${{ matrix.composer-flags }}
       
     - name: Prepare .env for testing
+      working-directory: src
       run: |
-        cp .env.testing.example .env.testing
-        sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env.testing
-        sed -i 's/REDIS_HOST=.*/REDIS_HOST=127.0.0.1/' .env.testing
-        sed -i 's/MEILISEARCH_HOST=.*/MEILISEARCH_HOST=http:\/\/127.0.0.1:7700/' .env.testing
-        sed -i 's/APP_DEBUG=.*/APP_DEBUG=false/' .env.testing
+        cp ../.env.example .env
+        cp ../.env.testing.example .env.testing
         
     - name: Generate application key
+      working-directory: src
       run: php artisan key:generate --env=testing
         
     - name: Run database migrations
+      working-directory: src
       run: |
         php artisan migrate --env=testing --force
         php artisan db:seed --env=testing --class=DatabaseSeeder
         
     - name: Run PHPUnit tests
+      working-directory: src
       run: ./vendor/bin/phpunit --coverage-clover=coverage.xml
-      env:
-        APP_ENV: testing
-        DB_HOST: 127.0.0.1
-        REDIS_HOST: 127.0.0.1
-        MEILISEARCH_HOST: http://127.0.0.1:7700
         
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
-        file: ./coverage.xml
+        file: src/coverage.xml
         flags: unittests
         name: codecov-umbrella
         
@@ -166,7 +186,8 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: phpunit-results-${{ matrix.php }}
-        path: storage/logs/test*.log
+        path: src/storage/logs/test*.log
+        if-no-files-found: warn
 
   build-image:
     name: Build Docker Image

@@ -19,6 +19,7 @@ cd narrativ
 2. Настройка окружения:
 ```bash
 cp .env.example .env
+cp .env.testing.example .env.testing
 make setup
 ```
 
@@ -38,6 +39,18 @@ make down        # Остановка контейнеров
 make logs        # Просмотр логов
 make test        # Запуск тестов
 ```
+
+## ⚙️ Переменные окружения
+
+- В корне репозитория доступны примеры `.env.example` (локальная разработка/Docker) и `.env.testing.example` (CI и тесты). Скопируйте их перед запуском (`cp .env.example .env` и `cp .env.testing.example .env.testing`), затем при необходимости обновите значения под ваше окружение.
+- Базовый набор переменных:
+  - **Приложение:** `APP_NAME`, `APP_ENV`, `APP_URL`, `APP_DEBUG`, `APP_KEY`.
+  - **PostgreSQL:** `DB_CONNECTION=pgsql`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` (по умолчанию совпадают с сервисами docker-compose).
+  - **Redis и очереди:** `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB`, `REDIS_CACHE_DB`, `QUEUE_CONNECTION`, `REDIS_QUEUE`, `REDIS_QUEUE_RETRY_AFTER`.
+  - **Meilisearch/Scout:** `SCOUT_DRIVER=meilisearch`, `MEILISEARCH_HOST`, `MEILISEARCH_KEY`.
+  - **Почта:** `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` (по умолчанию MailHog).
+  - **Интеграции:** `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, параметры AWS/S3 при использовании внешнего хранилища.
+- Laravel-приложение находится в `src/`: корневые `.env` файлы подхватываются Docker Compose, а тестовая конфигурация копируется в `src/.env.testing` для запусков CI/тестов.
 
 ## 📁 Структура проекта
 

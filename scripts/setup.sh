@@ -31,15 +31,23 @@ fi
 # Копируем примеры файлов окружения
 echo "📝 Настройка переменных окружения..."
 if [ ! -f .env ]; then
-    cp .env.example .env
-    echo "✅ Файл .env создан из примера"
+    if [ -f .env.example ]; then
+        cp .env.example .env
+        echo "✅ Файл .env создан из примера"
+    else
+        echo "⚠️  Пример .env.example не найден, пропускаю копирование"
+    fi
 else
     echo "✅ Файл .env уже существует"
 fi
 
-if [ ! -f .env.testing.example ]; then
-    cp .env.testing.example .env.testing
-    echo "✅ Файл .env.testing создан из примера"
+if [ ! -f .env.testing ]; then
+    if [ -f .env.testing.example ]; then
+        cp .env.testing.example .env.testing
+        echo "✅ Файл .env.testing создан из примера"
+    else
+        echo "⚠️  Пример .env.testing.example не найден, пропускаю копирование"
+    fi
 else
     echo "✅ Файл .env.testing уже существует"
 fi

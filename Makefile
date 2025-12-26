@@ -150,6 +150,11 @@ horizon:
 clear-cache:
 	$(COMPOSE) exec php-fpm php artisan optimize:clear
 
+scout-import:
+	$(COMPOSE) exec -T php-fpm php artisan scout:import "App\\Models\\Product"
+	$(COMPOSE) exec -T php-fpm php artisan scout:import "App\\Models\\PortfolioCase"
+	$(COMPOSE) exec -T php-fpm php artisan scout:import "App\\Models\\Service"
+
 storage-link:
 	$(COMPOSE) exec php-fpm php artisan storage:link
 

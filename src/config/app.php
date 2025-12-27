@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Force HTTPS Scheme
+    |--------------------------------------------------------------------------
+    |
+    | This option defines whether all generated URLs and incoming requests
+    | should be forced to HTTPS. Disable it only when you explicitly need
+    | to serve the application over HTTP (for example, in local testing).
+    |
+    */
+
+    'force_https' => (bool) env('FORCE_HTTPS', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

@@ -20,6 +20,7 @@ return [
     'middleware' => [
         'public' => [
             'web',
+            'throttle:platform-login',
         ],
         'private' => [
             'web',
@@ -73,7 +74,7 @@ return [
     */
 
     'uploads' => [
-        'disk' => env('ORCHID_STORAGE_DISK', 'public'),
+        'disk' => env('ORCHID_STORAGE_DISK', env('MEDIA_DISK', 'media')),
         'path' => env('ORCHID_STORAGE_PATH', 'platform'),
     ],
 ];

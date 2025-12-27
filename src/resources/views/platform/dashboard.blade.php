@@ -2,6 +2,11 @@
     <meta name="robots" content="noindex">
 @endpush
 
+@include('platform.partials.admin-header', [
+    'title' => __('Панель управления'),
+    'description' => __('Стартовая страница административной панели'),
+])
+
 <div class="row">
     <div class="col-12 col-lg-8">
         <div class="card mb-3">

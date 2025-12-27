@@ -15,8 +15,8 @@ class RedirectFactory extends Factory
     public function definition(): array
     {
         return [
-            'from_path' => '/old-' . $this->faker->unique()->slug(),
-            'to_path' => '/new-' . $this->faker->slug(),
+            'from_path' => '/old-'.$this->faker->unique()->slug(),
+            'to_path' => '/new-'.$this->faker->slug(),
             'code' => 301,
             'is_active' => $this->faker->boolean(90),
         ];

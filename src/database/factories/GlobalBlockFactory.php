@@ -18,7 +18,7 @@ class GlobalBlockFactory extends Factory
         $title = $this->faker->sentence(3);
 
         return [
-            'code' => Str::slug($title . '-' . $this->faker->unique()->numberBetween(1, 9999)),
+            'code' => Str::slug($title.'-'.$this->faker->unique()->numberBetween(1, 9999)),
             'title' => $title,
             'content' => [
                 'body' => $this->faker->paragraph(),

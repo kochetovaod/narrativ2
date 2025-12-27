@@ -20,7 +20,7 @@ class PageFactory extends Factory
         return [
             'code' => null,
             'title' => $title,
-            'slug' => Str::slug($title . '-' . $this->faker->unique()->numberBetween(1, 9999)),
+            'slug' => Str::slug($title.'-'.$this->faker->unique()->numberBetween(1, 9999)),
             'sections' => [
                 ['type' => 'text', 'value' => $this->faker->paragraph()],
             ],

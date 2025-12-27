@@ -132,7 +132,7 @@ class ContentSeeder extends Seeder
     }
 
     /**
-     * @param Collection<int, Form> $forms
+     * @param  Collection<int, Form>  $forms
      */
     private function seedLeads(Collection $forms): void
     {

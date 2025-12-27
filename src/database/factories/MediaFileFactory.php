@@ -16,8 +16,8 @@ class MediaFileFactory extends Factory
     {
         return [
             'disk' => 'local',
-            'path' => 'uploads/' . $this->faker->uuid() . '.jpg',
-            'original_name' => $this->faker->word() . '.jpg',
+            'path' => 'uploads/'.$this->faker->uuid().'.jpg',
+            'original_name' => $this->faker->word().'.jpg',
             'mime' => 'image/jpeg',
             'size' => $this->faker->numberBetween(10_000, 2_000_000),
             'width' => $this->faker->numberBetween(640, 1920),

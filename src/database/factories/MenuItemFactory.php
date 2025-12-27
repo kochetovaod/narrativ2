@@ -19,7 +19,7 @@ class MenuItemFactory extends Factory
             'menu_id' => Menu::factory(),
             'parent_id' => null,
             'title' => $this->faker->sentence(2),
-            'url' => '/' . $this->faker->slug(),
+            'url' => '/'.$this->faker->slug(),
             'entity_type' => null,
             'entity_id' => null,
             'sort' => $this->faker->numberBetween(0, 20),

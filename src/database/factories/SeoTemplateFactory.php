@@ -16,7 +16,7 @@ class SeoTemplateFactory extends Factory
     {
         return [
             'entity_type' => $this->faker->randomElement(['Category', 'Product', 'Service', 'Case', 'News', 'Page']),
-            'title_tpl' => '{{title}} — ' . $this->faker->company(),
+            'title_tpl' => '{{title}} — '.$this->faker->company(),
             'description_tpl' => $this->faker->sentence(10),
             'h1_tpl' => '{{h1}}',
             'og_title_tpl' => '{{og_title}}',

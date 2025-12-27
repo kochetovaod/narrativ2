@@ -10,6 +10,7 @@ class User extends OrchidUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
+
     use SoftDeletes;
 
     /**

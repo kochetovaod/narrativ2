@@ -21,11 +21,11 @@ class ProductFactory extends Factory
         return [
             'category_id' => ProductCategory::factory(),
             'title' => $title,
-            'slug' => Str::slug($title . '-' . $this->faker->unique()->numberBetween(1, 9999)),
+            'slug' => Str::slug($title.'-'.$this->faker->unique()->numberBetween(1, 9999)),
             'short_text' => $this->faker->sentence(),
             'description' => $this->faker->paragraph(),
             'specs' => [
-                'weight' => $this->faker->randomFloat(2, 0.1, 10) . ' кг',
+                'weight' => $this->faker->randomFloat(2, 0.1, 10).' кг',
                 'color' => $this->faker->safeColorName(),
             ],
             'status' => $this->faker->randomElement(['draft', 'published']),

@@ -18,7 +18,7 @@ class FormFactory extends Factory
 
         return [
             'code' => $code,
-            'title' => ucfirst($code) . ' form',
+            'title' => ucfirst($code).' form',
             'is_active' => true,
             'notification_email' => [$this->faker->safeEmail()],
             'notification_telegram' => ['chat_id' => $this->faker->numberBetween(10_000, 9_999_999)],

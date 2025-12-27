@@ -121,7 +121,7 @@ class NewsPostEditScreen extends Screen
                         ->title(__('Главное изображение'))
                         ->targetId()
                         ->help(__('Основное изображение для новости')),
-                    
+
                     Picture::make('news.gallery_images')
                         ->title(__('Галерея изображений'))
                         ->targetId()
@@ -174,7 +174,7 @@ class NewsPostEditScreen extends Screen
         $contentData = $newsData['content'] ?? [];
 
         // Установка статуса публикации
-        if (!empty($newsData['publish_now'])) {
+        if (! empty($newsData['publish_now'])) {
             $newsData['status'] = 'published';
             $newsData['published_at'] = $newsData['published_at'] ?: now();
         } elseif (empty($newsData['published_at']) && $newsData['status'] === 'published') {
@@ -187,8 +187,8 @@ class NewsPostEditScreen extends Screen
             'excerpt' => $newsData['excerpt'],
             'status' => $newsData['status'],
             'published_at' => $newsData['published_at'],
-            'content' => !empty($contentData) ? $contentData : null,
-            'seo' => !empty($seoData) ? $seoData : null,
+            'content' => ! empty($contentData) ? $contentData : null,
+            'seo' => ! empty($seoData) ? $seoData : null,
         ]);
 
         $news->save();
@@ -207,4 +207,3 @@ class NewsPostEditScreen extends Screen
         $this->redirect(route('platform.systems.news_posts'));
     }
 }
-

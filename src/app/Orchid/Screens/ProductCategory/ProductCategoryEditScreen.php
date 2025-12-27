@@ -161,7 +161,7 @@ class ProductCategoryEditScreen extends Screen
         $bodyData = $categoryData['body'] ?? [];
 
         // Установка статуса публикации
-        if (!empty($categoryData['published_at'])) {
+        if (! empty($categoryData['published_at'])) {
             $categoryData['status'] = 'published';
             $categoryData['published_at'] = now();
         } else {
@@ -173,8 +173,8 @@ class ProductCategoryEditScreen extends Screen
             'slug' => $categoryData['slug'],
             'intro_text' => $categoryData['intro_text'],
             'status' => $categoryData['status'],
-            'body' => !empty($bodyData) ? $bodyData : null,
-            'seo' => !empty($seoData) ? $seoData : null,
+            'body' => ! empty($bodyData) ? $bodyData : null,
+            'seo' => ! empty($seoData) ? $seoData : null,
         ]);
 
         $category->save();
@@ -193,4 +193,3 @@ class ProductCategoryEditScreen extends Screen
         $this->redirect(route('platform.systems.product_categories'));
     }
 }
-

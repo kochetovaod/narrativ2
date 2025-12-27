@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Orchid\Screens\PortfolioCase;
 
 use App\Models\PortfolioCase;
-use App\Orchid\Filters\StatusFilter;
 use App\Orchid\Filters\SearchFilter;
+use App\Orchid\Filters\StatusFilter;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Screen;
 use Orchid\Screen\TD;
@@ -72,6 +72,7 @@ class PortfolioCaseListScreen extends Screen
                         if ($case->is_nda) {
                             return $case->public_client_label ?: __('NDA');
                         }
+
                         return $case->client_name ?: '—';
                     })
                     ->width('15%'),
@@ -108,4 +109,3 @@ class PortfolioCaseListScreen extends Screen
         ];
     }
 }
-

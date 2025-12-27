@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Orchid\Screens\GlobalBlock;
 
 use App\Models\GlobalBlock;
-use App\Orchid\Filters\StatusFilter;
 use App\Orchid\Filters\SearchFilter;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Screen;
@@ -95,14 +94,14 @@ class GlobalBlockListScreen extends Screen
     private function getBlockType(GlobalBlock $block): string
     {
         $content = $block->content ?? [];
-        
-        if (!is_array($content)) {
+
+        if (! is_array($content)) {
             return __('Неизвестный');
         }
 
         // Определяем тип блока по содержимому
         if (isset($content['type'])) {
-            return match($content['type']) {
+            return match ($content['type']) {
                 'cta_form' => __('CTA форма'),
                 'contact_info' => __('Контакты'),
                 'advantages' => __('Преимущества'),

@@ -3,24 +3,24 @@
 declare(strict_types=1);
 
 use App\Orchid\Screens\DashboardScreen;
-use App\Orchid\Screens\Roles\RoleEditScreen;
-use App\Orchid\Screens\Roles\RoleListScreen;
-use App\Orchid\Screens\Users\UserEditScreen;
-use App\Orchid\Screens\Users\UserListScreen;
-use App\Orchid\Screens\ProductCategory\ProductCategoryEditScreen;
-use App\Orchid\Screens\ProductCategory\ProductCategoryListScreen;
-use App\Orchid\Screens\Product\ProductEditScreen;
-use App\Orchid\Screens\Product\ProductListScreen;
-use App\Orchid\Screens\Service\ServiceEditScreen;
-use App\Orchid\Screens\Service\ServiceListScreen;
-use App\Orchid\Screens\PortfolioCase\PortfolioCaseEditScreen;
-use App\Orchid\Screens\PortfolioCase\PortfolioCaseListScreen;
+use App\Orchid\Screens\GlobalBlock\GlobalBlockEditScreen;
+use App\Orchid\Screens\GlobalBlock\GlobalBlockListScreen;
 use App\Orchid\Screens\NewsPost\NewsPostEditScreen;
 use App\Orchid\Screens\NewsPost\NewsPostListScreen;
 use App\Orchid\Screens\Page\PageEditScreen;
 use App\Orchid\Screens\Page\PageListScreen;
-use App\Orchid\Screens\GlobalBlock\GlobalBlockEditScreen;
-use App\Orchid\Screens\GlobalBlock\GlobalBlockListScreen;
+use App\Orchid\Screens\PortfolioCase\PortfolioCaseEditScreen;
+use App\Orchid\Screens\PortfolioCase\PortfolioCaseListScreen;
+use App\Orchid\Screens\Product\ProductEditScreen;
+use App\Orchid\Screens\Product\ProductListScreen;
+use App\Orchid\Screens\ProductCategory\ProductCategoryEditScreen;
+use App\Orchid\Screens\ProductCategory\ProductCategoryListScreen;
+use App\Orchid\Screens\Roles\RoleEditScreen;
+use App\Orchid\Screens\Roles\RoleListScreen;
+use App\Orchid\Screens\Service\ServiceEditScreen;
+use App\Orchid\Screens\Service\ServiceListScreen;
+use App\Orchid\Screens\Users\UserEditScreen;
+use App\Orchid\Screens\Users\UserListScreen;
 use Illuminate\Support\Facades\Route;
 use Tabuna\Breadcrumbs\Trail;
 

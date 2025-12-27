@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Orchid\Screens\Service;
 
-use App\Models\Service;
 use App\Models\PortfolioCase;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Orchid\Screen\Actions\Button;
@@ -32,7 +32,7 @@ class ServiceEditScreen extends Screen
     public function query(Service $service): iterable
     {
         $service->load('portfolioCases');
-        
+
         $cases = PortfolioCase::query()
             ->where('status', 'published')
             ->orderBy('title')
@@ -199,7 +199,7 @@ class ServiceEditScreen extends Screen
         $contentData = $serviceData['content'] ?? [];
 
         // Установка статуса публикации
-        if (!empty($serviceData['published_at'])) {
+        if (! empty($serviceData['published_at'])) {
             $serviceData['status'] = 'published';
             $serviceData['published_at'] = now();
         } else {
@@ -211,8 +211,8 @@ class ServiceEditScreen extends Screen
             'slug' => $serviceData['slug'],
             'status' => $serviceData['status'],
             'show_cases' => $serviceData['show_cases'] ?? false,
-            'content' => !empty($contentData) ? $contentData : null,
-            'seo' => !empty($seoData) ? $seoData : null,
+            'content' => ! empty($contentData) ? $contentData : null,
+            'seo' => ! empty($seoData) ? $seoData : null,
         ]);
 
         $service->save();
@@ -237,4 +237,3 @@ class ServiceEditScreen extends Screen
         $this->redirect(route('platform.systems.services'));
     }
 }
-

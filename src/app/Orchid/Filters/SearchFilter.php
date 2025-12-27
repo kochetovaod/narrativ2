@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Orchid\Filters\Filter;
 use Orchid\Screen\Field;
 use Orchid\Screen\Fields\Input;
-use Orchid\Screen\Fields\Select;
 
 class SearchFilter extends Filter
 {
@@ -36,19 +35,15 @@ class SearchFilter extends Filter
         ];
     }
 
-    /**
-     * @param Builder $query
-     * @return Builder
-     */
     public function run(Builder $query): Builder
     {
         $search = $this->request->get('search');
 
-        if (!empty($search)) {
+        if (! empty($search)) {
             // Поля для поиска в зависимости от модели
             $table = $query->getModel()->getTable();
-            
-            $searchFields = match($table) {
+
+            $searchFields = match ($table) {
                 'product_categories' => ['title', 'intro_text'],
                 'products' => ['title', 'short_text', 'description'],
                 'services' => ['title', 'content'],
@@ -63,7 +58,7 @@ class SearchFilter extends Filter
                 foreach ($searchFields as $field) {
                     if ($field === 'content') {
                         // Для JSON полей content ищем по title
-                        $q->orWhereJsonContains("content->title", $search);
+                        $q->orWhereJsonContains('content->title', $search);
                     } else {
                         $q->orWhere($field, 'like', "%{$search}%");
                     }

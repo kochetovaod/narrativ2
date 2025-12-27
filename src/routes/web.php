@@ -10,11 +10,11 @@ Route::get('/', function () {
 // Предпросмотр страниц
 Route::get('/preview/{token}', function ($token) {
     $page = Page::where('preview_token', $token)->first();
-    
-    if (!$page) {
+
+    if (! $page) {
         abort(404, 'Страница не найдена или токен просрочен');
     }
-    
+
     return view('preview.page', compact('page'));
 })->name('preview.page');
 

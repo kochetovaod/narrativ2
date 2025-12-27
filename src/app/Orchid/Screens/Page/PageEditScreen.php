@@ -13,10 +13,8 @@ use Illuminate\Validation\Rule;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Fields\Input;
-use Orchid\Screen\Fields\Picture;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\Switcher;
-use Orchid\Screen\Fields\TextArea;
 use Orchid\Screen\Screen;
 use Orchid\Support\Facades\Alert;
 use Orchid\Support\Facades\Layout;
@@ -195,7 +193,7 @@ class PageEditScreen extends Screen
         $seoData = $pageData['seo'] ?? [];
 
         // Установка статуса публикации
-        if (!empty($pageData['published_at'])) {
+        if (! empty($pageData['published_at'])) {
             $pageData['status'] = 'published';
             $pageData['published_at'] = now();
         } else {
@@ -204,9 +202,9 @@ class PageEditScreen extends Screen
 
         // Обновляем секции
         $sections = $request->input('sections', []);
-        if (!empty($sections)) {
+        if (! empty($sections)) {
             // Пересортировка по order
-            usort($sections, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
+            usort($sections, fn ($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
             $pageData['sections'] = $sections;
         } else {
             $pageData['sections'] = [];
@@ -218,7 +216,7 @@ class PageEditScreen extends Screen
             'slug' => $pageData['slug'],
             'status' => $pageData['status'],
             'sections' => $pageData['sections'],
-            'seo' => !empty($seoData) ? $seoData : null,
+            'seo' => ! empty($seoData) ? $seoData : null,
         ]);
 
         $page->save();
@@ -231,9 +229,10 @@ class PageEditScreen extends Screen
     public function addSection(Request $request): void
     {
         $sectionType = $request->input('new_section_type');
-        
-        if (!$sectionType) {
+
+        if (! $sectionType) {
             Alert::warning(__('Выберите тип секции'));
+
             return;
         }
 
@@ -246,19 +245,20 @@ class PageEditScreen extends Screen
     {
         if ($page->status !== 'draft') {
             Alert::warning(__('Предпросмотр доступен только для черновиков'));
+
             return;
         }
 
         // Генерируем preview token если его нет
-        if (!$page->preview_token) {
+        if (! $page->preview_token) {
             $page->preview_token = \Str::random(32);
             $page->save();
         }
 
         $previewUrl = route('preview.page', $page->preview_token);
-        
+
         Alert::info(__("Предпросмотр доступен по адресу: {$previewUrl}"));
-        
+
         // Открываем в новой вкладке
         echo "<script>window.open('{$previewUrl}', '_blank');</script>";
     }

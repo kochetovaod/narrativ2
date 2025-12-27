@@ -34,7 +34,7 @@ class PortfolioCaseEditScreen extends Screen
     public function query(PortfolioCase $case): iterable
     {
         $case->load(['products', 'services']);
-        
+
         $products = Product::query()
             ->where('status', 'published')
             ->with('category')
@@ -42,6 +42,7 @@ class PortfolioCaseEditScreen extends Screen
             ->get()
             ->mapWithKeys(function (Product $product) {
                 $categoryTitle = $product->category ? $product->category->title : 'Без категории';
+
                 return [$product->id => "{$product->title} ({$categoryTitle})"];
             })
             ->all();
@@ -227,7 +228,7 @@ class PortfolioCaseEditScreen extends Screen
         $descriptionData = $caseData['description'] ?? [];
 
         // Установка статуса публикации
-        if (!empty($caseData['published_at'])) {
+        if (! empty($caseData['published_at'])) {
             $caseData['status'] = 'published';
             $caseData['published_at'] = now();
         } else {
@@ -237,13 +238,13 @@ class PortfolioCaseEditScreen extends Screen
         $case->fill([
             'title' => $caseData['title'],
             'slug' => $caseData['slug'],
-            'description' => !empty($descriptionData) ? $descriptionData : null,
+            'description' => ! empty($descriptionData) ? $descriptionData : null,
             'client_name' => $caseData['client_name'],
             'is_nda' => $caseData['is_nda'] ?? false,
             'public_client_label' => $caseData['public_client_label'],
             'date' => $caseData['date'],
             'status' => $caseData['status'],
-            'seo' => !empty($seoData) ? $seoData : null,
+            'seo' => ! empty($seoData) ? $seoData : null,
         ]);
 
         $case->save();
@@ -273,4 +274,3 @@ class PortfolioCaseEditScreen extends Screen
         $this->redirect(route('platform.systems.portfolio_cases'));
     }
 }
-

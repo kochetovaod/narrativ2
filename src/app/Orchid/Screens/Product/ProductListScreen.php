@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Orchid\Screens\Product;
 
 use App\Models\Product;
-use App\Models\ProductCategory;
-use App\Orchid\Filters\StatusFilter;
-use App\Orchid\Filters\SearchFilter;
 use App\Orchid\Filters\CategoryFilter;
+use App\Orchid\Filters\SearchFilter;
+use App\Orchid\Filters\StatusFilter;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Screen;
 use Orchid\Screen\TD;
@@ -99,4 +98,3 @@ class ProductListScreen extends Screen
         ];
     }
 }
-

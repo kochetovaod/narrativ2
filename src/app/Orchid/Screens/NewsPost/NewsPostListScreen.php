@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Orchid\Screens\NewsPost;
 
 use App\Models\NewsPost;
-use App\Orchid\Filters\StatusFilter;
 use App\Orchid\Filters\SearchFilter;
+use App\Orchid\Filters\StatusFilter;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Screen;
 use Orchid\Screen\TD;
@@ -94,4 +94,3 @@ class NewsPostListScreen extends Screen
         ];
     }
 }
-

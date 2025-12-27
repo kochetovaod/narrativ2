@@ -10,7 +10,6 @@ use Illuminate\Validation\Rule;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Fields\Input;
-use Orchid\Screen\Fields\Picture;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\Switcher;
 use Orchid\Screen\Fields\TextArea;
@@ -111,7 +110,7 @@ class GlobalBlockEditScreen extends Screen
                                 'calculation' => __('Получить расчет'),
                                 'question' => __('Задать вопрос'),
                             ])
-                            ->help(__('Тип формы для отображения'),),
+                            ->help(__('Тип формы для отображения')),
 
                         Input::make('content.form_title')
                             ->title(__('Заголовок формы'))
@@ -286,10 +285,10 @@ class GlobalBlockEditScreen extends Screen
         $finalContent = array_merge($contentData, ['type' => $contentType]);
 
         // Специальная обработка для преимуществ
-        if ($contentType === 'advantages' && !empty($contentData['advantages_list'])) {
+        if ($contentType === 'advantages' && ! empty($contentData['advantages_list'])) {
             $advantages = array_filter(
                 array_map('trim', explode("\n", $contentData['advantages_list'])),
-                fn($item) => !empty($item)
+                fn ($item) => ! empty($item)
             );
             $finalContent['advantages'] = $advantages;
             unset($finalContent['advantages_list']);
@@ -299,7 +298,7 @@ class GlobalBlockEditScreen extends Screen
             'code' => $globalBlockData['code'],
             'title' => $globalBlockData['title'],
             'content' => $finalContent,
-            'is_active' => !empty($globalBlockData['is_active']),
+            'is_active' => ! empty($globalBlockData['is_active']),
         ]);
 
         $globalBlock->save();

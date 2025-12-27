@@ -41,10 +41,6 @@ class StatusFilter extends Filter
         ];
     }
 
-    /**
-     * @param Builder $query
-     * @return Builder
-     */
     public function run(Builder $query): Builder
     {
         $status = $this->request->get('status');

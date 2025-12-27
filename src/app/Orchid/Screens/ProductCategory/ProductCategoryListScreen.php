@@ -92,4 +92,3 @@ class ProductCategoryListScreen extends Screen
         ];
     }
 }
-

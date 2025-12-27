@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Orchid\Screens\Product;
 
+use App\Models\PortfolioCase;
 use App\Models\Product;
 use App\Models\ProductCategory;
-use App\Models\PortfolioCase;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Orchid\Screen\Actions\Button;
@@ -33,7 +33,7 @@ class ProductEditScreen extends Screen
     public function query(Product $product): iterable
     {
         $product->load(['category', 'portfolioCases']);
-        
+
         $categories = ProductCategory::query()
             ->orderBy('title')
             ->pluck('title', 'id')
@@ -208,7 +208,7 @@ class ProductEditScreen extends Screen
         $specsData = $productData['specs'] ?? [];
 
         // Установка статуса публикации
-        if (!empty($productData['published_at'])) {
+        if (! empty($productData['published_at'])) {
             $productData['status'] = 'published';
             $productData['published_at'] = now();
         } else {
@@ -217,7 +217,7 @@ class ProductEditScreen extends Screen
 
         // Парсинг характеристик из JSON
         $specs = null;
-        if (!empty($specsData['data'])) {
+        if (! empty($specsData['data'])) {
             $specs = json_decode($specsData['data'], true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 Alert::warning(__('Некорректный формат характеристик. Ожидается валидный JSON.'));
@@ -230,9 +230,9 @@ class ProductEditScreen extends Screen
             'category_id' => $productData['category_id'],
             'short_text' => $productData['short_text'],
             'status' => $productData['status'],
-            'description' => !empty($descriptionData) ? $descriptionData : null,
+            'description' => ! empty($descriptionData) ? $descriptionData : null,
             'specs' => $specs,
-            'seo' => !empty($seoData) ? $seoData : null,
+            'seo' => ! empty($seoData) ? $seoData : null,
         ]);
 
         $product->save();
@@ -257,4 +257,3 @@ class ProductEditScreen extends Screen
         $this->redirect(route('platform.systems.products'));
     }
 }
-

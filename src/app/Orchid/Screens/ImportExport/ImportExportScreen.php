@@ -3,6 +3,7 @@
 namespace App\Orchid\Screens\ImportExport;
 
 use App\Models\ImportLog;
+use App\Orchid\Permissions\Rbac;
 use App\Services\ImportExport\CSVExporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,11 @@ use Orchid\Support\Facades\Toast;
 
 class ImportExportScreen extends Screen
 {
+    /**
+     * @var string|array<int, string>
+     */
+    public $permission = Rbac::PERMISSION_IMPORTS;
+
     public $name = 'Импорт/Экспорт';
 
     public $description = 'Управление импортом и экспортом данных';

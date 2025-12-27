@@ -206,6 +206,11 @@
             font-size: 0.95rem;
         }
 
+        mark {
+            background: #fff1a9;
+            padding: 0 0.1rem;
+        }
+
         .site-footer {
             background: #0b1220;
             color: #cbd5e1;
@@ -247,10 +252,35 @@
             padding: 0.5rem 0.75rem;
             border-radius: 0.5rem;
             color: #0f172a;
+            text-decoration: none;
         }
 
         .search-suggestions a:hover {
             background: #f8fafc;
+        }
+
+        .search-suggestions__title {
+            font-weight: 700;
+            display: block;
+        }
+
+        .search-suggestions__snippet {
+            display: block;
+            color: #475569;
+            font-size: 0.9rem;
+            margin-top: 0.1rem;
+        }
+
+        .search-suggestions__meta {
+            display: block;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 0.1rem;
+        }
+
+        .search-suggestions__empty {
+            padding: 0.75rem 0.9rem;
+            color: #475569;
         }
 
         .section.hero {
@@ -483,14 +513,20 @@
 
         const renderSuggestions = (items) => {
             if (!Array.isArray(items) || items.length === 0) {
-                hideSuggestions();
+                suggestions.innerHTML = '<div class="search-suggestions__empty">Ничего не найдено</div>';
+                suggestions.classList.add('open');
                 return;
             }
 
             suggestions.innerHTML = items.map(item => {
+                const title = item.highlighted_title || item.title;
+                const snippet = item.snippet ? `<span class="search-suggestions__snippet">${item.snippet}</span>` : '';
+                const meta = item.type_label || item.type;
+
                 return `<a href="${item.url}">
-                        <strong>${item.title}</strong>
-                        <div class="meta">${item.type}</div>
+                        <span class="search-suggestions__title">${title}</span>
+                        <span class="search-suggestions__meta">${meta}</span>
+                        ${snippet}
                     </a>`;
             }).join('');
 

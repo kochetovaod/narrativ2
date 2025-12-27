@@ -12,6 +12,7 @@ use App\Models\ProductCategory;
 use App\Models\Service;
 use App\Services\BreadcrumbService;
 use App\Services\FormPlacementService;
+use App\Services\SearchService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -20,7 +21,8 @@ class PublicController extends Controller
 {
     public function __construct(
         private BreadcrumbService $breadcrumbService,
-        private FormPlacementService $formPlacementService
+        private FormPlacementService $formPlacementService,
+        private SearchService $searchService,
     ) {}
 
     /**
@@ -363,68 +365,7 @@ class PublicController extends Controller
         $results = collect();
 
         if ($query !== '') {
-            // Поиск по товарам
-            $products = Product::query()
-                ->with('category:id,slug')
-                ->published()
-                ->where(function ($q) use ($query) {
-                    $q->where('title', 'like', "%{$query}%")
-                        ->orWhere('description', 'like', "%{$query}%");
-                })
-                ->orderBy('title')
-                ->limit(15)
-                ->get();
-
-            // Поиск по услугам
-            $services = Service::query()
-                ->published()
-                ->where(function ($q) use ($query) {
-                    $q->where('title', 'like', "%{$query}%")
-                        ->orWhere('content', 'like', "%{$query}%");
-                })
-                ->orderBy('title')
-                ->limit(15)
-                ->get();
-
-            // Поиск по новостям
-            $news = NewsPost::query()
-                ->published()
-                ->where(function ($q) use ($query) {
-                    $q->where('title', 'like', "%{$query}%")
-                        ->orWhere('content', 'like', "%{$query}%");
-                })
-                ->orderByDesc('published_at')
-                ->limit(15)
-                ->get();
-
-            $portfolio = PortfolioCase::query()
-                ->published()
-                ->where(function ($q) use ($query) {
-                    $q->where('title', 'like', "%{$query}%")
-                        ->orWhere('description', 'like', "%{$query}%");
-                })
-                ->orderByDesc('date')
-                ->limit(15)
-                ->get();
-
-            // Поиск по страницам
-            $pages = Page::query()
-                ->published()
-                ->where(function ($q) use ($query) {
-                    $q->where('title', 'like', "%{$query}%")
-                        ->orWhere('code', 'like', "%{$query}%");
-                })
-                ->orderBy('title')
-                ->limit(15)
-                ->get();
-
-            $results = collect([
-                'products' => $products,
-                'services' => $services,
-                'portfolio' => $portfolio,
-                'news' => $news,
-                'pages' => $pages,
-            ]);
+            $results = $this->searchService->search($query);
         }
 
         $breadcrumbs = $this->breadcrumbService->search($query);
@@ -441,61 +382,7 @@ class PublicController extends Controller
         $suggestions = collect();
 
         if (strlen($query) >= 2) {
-            // Ищем в товарах
-            $products = Product::query()
-                ->with('category:id,slug')
-                ->published()
-                ->where('title', 'like', "%{$query}%")
-                ->select('id', 'title', 'slug', 'category_id')
-                ->limit(3)
-                ->get();
-
-            foreach ($products as $product) {
-                if ($product->category === null) {
-                    continue;
-                }
-
-                $suggestions->push([
-                    'title' => $product->title,
-                    'url' => route('products.show', [
-                        'categorySlug' => $product->category->slug,
-                        'productSlug' => $product->slug,
-                    ]),
-                    'type' => 'product',
-                ]);
-            }
-
-            // Ищем в услугах
-            $services = Service::query()
-                ->published()
-                ->where('title', 'like', "%{$query}%")
-                ->select('title', 'slug')
-                ->limit(3)
-                ->get();
-
-            foreach ($services as $service) {
-                $suggestions->push([
-                    'title' => $service->title,
-                    'url' => route('services.show', ['serviceSlug' => $service->slug]),
-                    'type' => 'service',
-                ]);
-            }
-
-            $news = NewsPost::query()
-                ->published()
-                ->where('title', 'like', "%{$query}%")
-                ->select('title', 'slug')
-                ->orderByDesc('published_at')
-                ->limit(3)
-                ->get();
-
-            foreach ($news as $post) {
-                $suggestions->push([
-                    'title' => $post->title,
-                    'url' => route('news.show', ['newsSlug' => $post->slug]),
-                    'type' => 'news',
-                ]);
-            }
+            $suggestions = $this->searchService->suggestions($query);
         }
 
         return response()->json($suggestions->values());

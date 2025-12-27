@@ -8,6 +8,7 @@ use App\Models\Concerns\HasSlugRedirects;
 use App\Models\Concerns\RecordsAdminAudit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Searchable;
 
 class PortfolioCase extends Model
 {
@@ -16,6 +17,7 @@ class PortfolioCase extends Model
     use HasSeo;
     use HasSlugRedirects;
     use RecordsAdminAudit;
+    use Searchable;
 
     protected $fillable = [
         'title',
@@ -51,6 +53,26 @@ class PortfolioCase extends Model
     public function mediaLinks()
     {
         return $this->morphMany(MediaLink::class, 'entity');
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'slug' => $this->slug,
+            'description' => strip_tags((string) $this->description),
+            'client_name' => $this->client_name,
+            'is_nda' => $this->is_nda,
+            'status' => $this->status,
+            'published_at' => optional($this->published_at)?->toAtomString(),
+            'date' => optional($this->date)?->toDateString(),
+        ];
+    }
+
+    public function shouldBeSearchable(): bool
+    {
+        return $this->isPublished();
     }
 
     protected function publicPathFromAttributes(array $attributes): string

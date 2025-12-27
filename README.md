@@ -104,8 +104,8 @@ ENV=<dev|staging|test|production> make <target> # запуск с нужным �
   - Redis/очереди: `REDIS_HOST=redis`, `REDIS_PORT=6379`, `QUEUE_CONNECTION=redis`, `REDIS_QUEUE`, `REDIS_QUEUE_RETRY_AFTER`.
   - Медиа: `MEDIA_DISK` (по умолчанию `media`), `MEDIA_CONVERSIONS_DISK`, `MEDIA_MAX_FILE_SIZE` (в байтах), `MEDIA_QUEUE_CONVERSIONS`.
   - Поиск: `SCOUT_DRIVER=meilisearch`, `MEILISEARCH_HOST=http://meilisearch:7700`, `MEILISEARCH_KEY`.
-  - Почта: `MAIL_MAILER=smtp`, `MAIL_HOST=mailhog`, `MAIL_PORT=1025`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`.
-  - Интеграции: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, AWS/S3 при использовании внешнего хранилища.
+- Почта: `MAIL_MAILER=smtp`, `MAIL_HOST=mailhog`, `MAIL_PORT=1025`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`.
+- Интеграции: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, AWS/S3 при использовании внешнего хранилища.
 
 Пример `.env` для локальной разработки (Docker):
 
@@ -141,6 +141,22 @@ MAIL_FROM_NAME="${APP_NAME}"
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHAT_ID=
 ```
+
+## 🔍 Поиск (Laravel Scout + Meilisearch)
+
+- Поисковый движок запускается вместе с `make up-dev` (контейнер `meilisearch`), драйвер включён по умолчанию (`SCOUT_DRIVER=meilisearch`).
+- После изменения индексов или при загрузке свежей базы обновите настройки и данные:
+
+  ```bash
+  docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec -T php-fpm php artisan scout:sync-index-settings
+  docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec -T php-fpm php artisan scout:import "App\\Models\\Product"
+  docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec -T php-fpm php artisan scout:import "App\\Models\\Service"
+  docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec -T php-fpm php artisan scout:import "App\\Models\\PortfolioCase"
+  docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec -T php-fpm php artisan scout:import "App\\Models\\NewsPost"
+  docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec -T php-fpm php artisan scout:import "App\\Models\\Page"
+  ```
+
+- При включённой очереди (`SCOUT_QUEUE=true`) актуализация индексов происходит автоматически при изменении сущностей.
 
 ## 📁 Структура проекта
 

@@ -8,6 +8,7 @@ use App\Models\Concerns\HasSlugRedirects;
 use App\Models\Concerns\RecordsAdminAudit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Searchable;
 
 class Service extends Model
 {
@@ -16,6 +17,7 @@ class Service extends Model
     use HasSeo;
     use HasSlugRedirects;
     use RecordsAdminAudit;
+    use Searchable;
 
     protected $fillable = [
         'title',
@@ -47,10 +49,40 @@ class Service extends Model
         return $this->morphMany(MediaLink::class, 'entity');
     }
 
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'slug' => $this->slug,
+            'content_text' => strip_tags($this->stringifyContent($this->content)),
+            'status' => $this->status,
+            'published_at' => optional($this->published_at)?->toAtomString(),
+            'created_at' => optional($this->created_at)?->toAtomString(),
+        ];
+    }
+
+    public function shouldBeSearchable(): bool
+    {
+        return $this->isPublished();
+    }
+
     protected function publicPathFromAttributes(array $attributes): string
     {
         $slug = $attributes['slug'] ?? $this->slug ?? '';
 
         return route('services.show', ['serviceSlug' => $slug], absolute: false);
+    }
+
+    private function stringifyContent(mixed $content): string
+    {
+        if (is_array($content)) {
+            return collect($content)
+                ->map(fn ($value) => is_array($value) ? $this->stringifyContent($value) : (is_string($value) ? $value : ''))
+                ->filter()
+                ->implode(' ');
+        }
+
+        return (string) ($content ?? '');
     }
 }

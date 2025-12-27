@@ -3,7 +3,11 @@
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
+Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap');
 
 // Главная страница
 Route::get('/', [PublicController::class, 'home'])->name('home');
@@ -32,13 +36,6 @@ Route::get('/news', [PublicController::class, 'news'])->name('news.index');
 Route::get('/news/{newsSlug}', [PublicController::class, 'newsPost'])
     ->name('news.show');
 
-// Статические страницы
-Route::get('/{pageSlug}', [PublicController::class, 'page'])
-    ->name('pages.show');
-
-// Поиск
-Route::get('/search', [PublicController::class, 'search'])->name('search');
-
 // Предпросмотр страниц
 Route::get('/preview/page/{token}', [PreviewController::class, 'page'])
     ->name('preview.page');
@@ -46,6 +43,11 @@ Route::get('/preview/page/{token}', [PreviewController::class, 'page'])
 // Предпросмотр глобальных блоков
 Route::get('/preview/block/{code}', [PreviewController::class, 'globalBlock'])
     ->name('preview.global_block');
+
+// Поиск
+Route::get('/search/suggestions', [PublicController::class, 'searchSuggestions'])
+    ->name('search.suggestions');
+Route::get('/search', [PublicController::class, 'search'])->name('search');
 
 // Формы
 Route::post('/forms/submit/{formCode}', [FormController::class, 'submit'])
@@ -55,3 +57,7 @@ Route::get('/forms/preview/{formCode}', [FormController::class, 'preview'])
     ->name('forms.preview');
 
 Route::get('/health', fn () => ['status' => 'ok']);
+
+// Статические страницы
+Route::get('/{pageSlug}', [PublicController::class, 'page'])
+    ->name('pages.show');

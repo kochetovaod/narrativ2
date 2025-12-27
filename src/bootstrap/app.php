@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureImportExportPermission;
 use App\Http\Middleware\EnsurePlatformUserIsActive;
+use App\Http\Middleware\HandleSlugRedirects;
 use App\Orchid\PlatformProvider;
 use App\Providers\AppServiceProvider;
 use Illuminate\Foundation\Application;
@@ -39,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            HandleSlugRedirects::class,
         ]);
 
         $middleware->appendToGroup('api', [

@@ -8,6 +8,11 @@ use App\Services\ImportExport\CSVExporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Orchid\Screen\Actions\Link;
+use Orchid\Screen\Actions\Button;
+use Orchid\Screen\Fields\DateTimer;
+use Orchid\Screen\Fields\Group;
+use Orchid\Screen\Fields\Input;
+use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Screen;
 use Orchid\Screen\TD;
 use Orchid\Support\Facades\Layout;
@@ -61,7 +66,7 @@ class ImportExportScreen extends Screen
     {
         return [
             Layout::rows([
-                \Orchid\Screen\Fields\Select::make('entity_type')
+                Select::make('import.entity_type')
                     ->title('Тип сущности')
                     ->options([
                         'products' => 'Товары',
@@ -72,7 +77,7 @@ class ImportExportScreen extends Screen
                     ])
                     ->required(),
 
-                \Orchid\Screen\Fields\Select::make('operation_type')
+                Select::make('import.operation_type')
                     ->title('Режим импорта')
                     ->options([
                         'create' => 'Создать (только новые)',
@@ -81,11 +86,17 @@ class ImportExportScreen extends Screen
                     ])
                     ->required(),
 
-                \Orchid\Screen\Fields\Input::make('csv_file')
+                Input::make('import.csv_file')
                     ->type('file')
                     ->title('CSV файл')
                     ->required()
                     ->help('Выберите CSV файл для импорта'),
+
+                Group::make([
+                    Button::make('Импортировать')
+                        ->method('import')
+                        ->icon('cloud-upload'),
+                ])->alignEnd(),
             ]),
         ];
     }
@@ -97,7 +108,7 @@ class ImportExportScreen extends Screen
     {
         return [
             Layout::rows([
-                \Orchid\Screen\Fields\Select::make('entity_type')
+                Select::make('export.entity_type')
                     ->title('Тип сущности')
                     ->options([
                         'all' => 'Все типы (массовый экспорт)',
@@ -109,7 +120,7 @@ class ImportExportScreen extends Screen
                     ])
                     ->required(),
 
-                \Orchid\Screen\Fields\Select::make('filters.status')
+                Select::make('export.filters.status')
                     ->title('Статус')
                     ->options([
                         '' => 'Все статусы',
@@ -118,13 +129,19 @@ class ImportExportScreen extends Screen
                         'archived' => 'Архив',
                     ]),
 
-                \Orchid\Screen\Fields\DateTimer::make('filters.date_from')
+                DateTimer::make('export.filters.date_from')
                     ->title('Дата от')
                     ->format('Y-m-d'),
 
-                \Orchid\Screen\Fields\DateTimer::make('filters.date_to')
+                DateTimer::make('export.filters.date_to')
                     ->title('Дата до')
                     ->format('Y-m-d'),
+
+                Group::make([
+                    Button::make('Экспортировать')
+                        ->method('export')
+                        ->icon('cloud-download'),
+                ])->alignEnd(),
             ]),
         ];
     }
@@ -181,15 +198,15 @@ class ImportExportScreen extends Screen
     public function import(Request $request)
     {
         $request->validate([
-            'entity_type' => 'required|string|in:products,services,portfolio_cases,leads,product_categories',
-            'operation_type' => 'required|string|in:create,update,upsert',
-            'csv_file' => 'required|file|mimes:csv,txt',
+            'import.entity_type' => 'required|string|in:products,services,portfolio_cases,leads,product_categories',
+            'import.operation_type' => 'required|string|in:create,update,upsert',
+            'import.csv_file' => 'required|file|mimes:csv,txt',
         ]);
 
         try {
-            $file = $request->file('csv_file');
-            $entityType = $request->input('entity_type');
-            $operationType = $request->input('operation_type');
+            $file = $request->file('import.csv_file');
+            $entityType = $request->input('import.entity_type');
+            $operationType = $request->input('import.operation_type');
 
             $importer = $this->getImporter($entityType);
             if (! $importer) {
@@ -224,21 +241,21 @@ class ImportExportScreen extends Screen
     public function export(Request $request)
     {
         $request->validate([
-            'entity_type' => 'required|string|in:products,services,portfolio_cases,leads,product_categories,all',
-            'filters' => 'array',
-            'filters.status' => 'string|in:draft,published,archived',
-            'filters.date_from' => 'date',
-            'filters.date_to' => 'date',
-            'filters.category_id' => 'integer',
-            'filters.form_code' => 'string',
-            'filters.utm_source' => 'string',
-            'filters.utm_medium' => 'string',
-            'filters.utm_campaign' => 'string',
+            'export.entity_type' => 'required|string|in:products,services,portfolio_cases,leads,product_categories,all',
+            'export.filters' => 'array',
+            'export.filters.status' => 'string|in:draft,published,archived',
+            'export.filters.date_from' => 'date',
+            'export.filters.date_to' => 'date',
+            'export.filters.category_id' => 'integer',
+            'export.filters.form_code' => 'string',
+            'export.filters.utm_source' => 'string',
+            'export.filters.utm_medium' => 'string',
+            'export.filters.utm_campaign' => 'string',
         ]);
 
         try {
-            $entityType = $request->input('entity_type');
-            $filters = $request->input('filters', []);
+            $entityType = $request->input('export.entity_type');
+            $filters = $request->input('export.filters', []);
 
             $exporter = new CSVExporter;
 

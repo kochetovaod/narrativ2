@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureImportExportPermission;
 use App\Http\Middleware\EnsurePlatformUserIsActive;
 use App\Orchid\PlatformProvider;
 use App\Providers\AppServiceProvider;
@@ -58,6 +59,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
             'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
             'platform.active' => EnsurePlatformUserIsActive::class,
+            'platform.imports' => EnsureImportExportPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

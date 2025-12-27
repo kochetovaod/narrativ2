@@ -271,21 +271,23 @@ Route::middleware((array) config('platform.middleware.private'))
                 ->push(__('Аналитика и метрики'), route('platform.analytics.settings')));
 
         // Импорт и экспорт
-        Route::screen('import-export', ImportExportScreen::class)
-            ->name('platform.import-export')
-            ->breadcrumbs(fn (Trail $trail) => $trail
-                ->push(__('Панель управления'), route('platform.main'))
-                ->push(__('Импорт/Экспорт'), route('platform.import-export')));
+        Route::middleware('platform.imports')->group(function (): void {
+            Route::screen('import-export', ImportExportScreen::class)
+                ->name('platform.import-export')
+                ->breadcrumbs(fn (Trail $trail) => $trail
+                    ->push(__('Панель управления'), route('platform.main'))
+                    ->push(__('Импорт/Экспорт'), route('platform.import-export')));
 
-        Route::post('import-export/import', [ImportExportScreen::class, 'import'])
-            ->name('platform.import-export.import');
+            Route::post('import-export/import', [ImportExportScreen::class, 'import'])
+                ->name('platform.import-export.import');
 
-        Route::post('import-export/export', [ImportExportScreen::class, 'export'])
-            ->name('platform.import-export.export');
+            Route::post('import-export/export', [ImportExportScreen::class, 'export'])
+                ->name('platform.import-export.export');
 
-        Route::post('import-export/preview', [ImportExportScreen::class, 'preview'])
-            ->name('platform.import-export.preview');
+            Route::post('import-export/preview', [ImportExportScreen::class, 'preview'])
+                ->name('platform.import-export.preview');
 
-        Route::get('import-export/download/{logId}', [ImportExportScreen::class, 'download'])
-            ->name('platform.import-export.download');
+            Route::get('import-export/download/{logId}', [ImportExportScreen::class, 'download'])
+                ->name('platform.import-export.download');
+        });
     });

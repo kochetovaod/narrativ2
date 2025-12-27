@@ -25,6 +25,7 @@ return [
         'private' => [
             'web',
             'platform',
+            'platform.active',
         ],
     ],
 

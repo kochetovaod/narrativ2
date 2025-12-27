@@ -2,6 +2,7 @@
 
 use App\Orchid\PlatformProvider;
 use App\Providers\AppServiceProvider;
+use App\Http\Middleware\EnsurePlatformUserIsActive;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -56,6 +57,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'signed' => \App\Http\Middleware\ValidateSignature::class,
             'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
             'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+            'platform.active' => EnsurePlatformUserIsActive::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

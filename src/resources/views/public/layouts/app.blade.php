@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name', 'Narrativ'))</title>
     @hasSection('meta_description')
         <meta name="description" content="@yield('meta_description')">
@@ -327,6 +328,112 @@
             overflow: hidden;
         }
 
+        .form-card {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        .dynamic-form {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .dynamic-form__field {
+            display: grid;
+            gap: 0.35rem;
+        }
+
+        .dynamic-form__label {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .dynamic-form__control {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.65rem;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            font-size: 1rem;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .dynamic-form__control:focus {
+            outline: none;
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+        }
+
+        .dynamic-form__consent {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-start;
+            font-size: 0.95rem;
+            color: #334155;
+            background: #f8fafc;
+            padding: 0.75rem;
+            border-radius: 0.65rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .dynamic-form__options {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .dynamic-form__option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #334155;
+        }
+
+        .dynamic-form__error {
+            color: #b91c1c;
+            font-size: 0.9rem;
+        }
+
+        .dynamic-form__actions {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .form-status {
+            padding: 0.85rem 1rem;
+            border-radius: 0.65rem;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #0f172a;
+            font-size: 0.95rem;
+        }
+
+        .form-status.is-loading {
+            border-color: #cbd5e1;
+            color: #334155;
+        }
+
+        .form-status.is-error {
+            border-color: #fecdd3;
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
+        .form-status.is-success {
+            border-color: #bbf7d0;
+            background: #ecfdf3;
+            color: #166534;
+        }
+
+        .form-status.is-hidden {
+            display: none;
+        }
+
+        .btn[disabled] {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
         @media (max-width: 900px) {
             .nav-container {
                 flex-wrap: wrap;
@@ -414,6 +521,338 @@
             if (!suggestions.contains(event.target) && event.target !== input) {
                 hideSuggestions();
             }
+        });
+    })();
+</script>
+<script>
+    (function () {
+        class RemoteForm {
+            constructor(root) {
+                this.root = root;
+                this.previewUrl = root.dataset.previewUrl;
+                this.submitUrl = root.dataset.submitUrl;
+                this.consentUrl = root.dataset.consentUrl;
+                this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || root.dataset.csrf || '';
+                this.statusEl = document.createElement('div');
+                this.statusEl.className = 'form-status is-loading';
+                this.root.innerHTML = '';
+                this.root.appendChild(this.statusEl);
+                this.loadForm();
+            }
+
+            setStatus(type, message) {
+                const classes = ['form-status'];
+                if (type) {
+                    classes.push(`is-${type}`);
+                }
+                this.statusEl.className = classes.join(' ');
+
+                if (!message) {
+                    this.statusEl.classList.add('is-hidden');
+                    this.statusEl.textContent = '';
+                    return;
+                }
+
+                this.statusEl.classList.remove('is-hidden');
+                this.statusEl.textContent = message;
+            }
+
+            async loadForm() {
+                this.setStatus('loading', 'Загружаем форму...');
+
+                try {
+                    const response = await fetch(this.previewUrl, {headers: {'Accept': 'application/json'}});
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success || !data.form) {
+                        throw new Error(data.message || 'Не удалось загрузить форму');
+                    }
+
+                    this.renderForm(data.form);
+                } catch (error) {
+                    console.error(error);
+                    this.setStatus('error', error.message || 'Не удалось загрузить форму');
+                }
+            }
+
+            renderForm(form) {
+                this.formEl = document.createElement('form');
+                this.formEl.className = 'dynamic-form';
+                this.formEl.noValidate = true;
+
+                const fieldsContainer = document.createElement('div');
+                fieldsContainer.className = 'dynamic-form__fields';
+
+                if (Array.isArray(form.fields)) {
+                    form.fields.forEach(field => fieldsContainer.appendChild(this.createField(field)));
+                }
+
+                this.formEl.appendChild(fieldsContainer);
+
+                this.appendHiddenInput('source_url', this.root.dataset.sourceUrl || window.location.href);
+                if (this.root.dataset.pageTitle) {
+                    this.appendHiddenInput('page_title', this.root.dataset.pageTitle);
+                }
+                if (this.consentUrl) {
+                    this.appendHiddenInput('consent_doc_url', this.consentUrl);
+                }
+                this.appendHiddenInput('_token', this.csrfToken);
+
+                const actions = document.createElement('div');
+                actions.className = 'dynamic-form__actions';
+                const submitButton = document.createElement('button');
+                submitButton.type = 'submit';
+                submitButton.className = 'btn';
+                submitButton.textContent = this.root.dataset.submitLabel || 'Отправить';
+                actions.appendChild(submitButton);
+
+                this.formEl.appendChild(actions);
+
+                this.statusEl.classList.add('is-hidden');
+                this.root.appendChild(this.formEl);
+                this.formEl.addEventListener('submit', this.handleSubmit.bind(this));
+            }
+
+            createField(field) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'dynamic-form__field';
+                wrapper.dataset.field = field.key;
+
+                const label = document.createElement('label');
+                label.className = 'dynamic-form__label';
+                label.textContent = field.label || field.key;
+                label.htmlFor = `${this.root.dataset.formCode}-${field.key}`;
+
+                const errorEl = document.createElement('div');
+                errorEl.className = 'dynamic-form__error';
+
+                if (field.key === 'consent_given') {
+                    const consentWrapper = document.createElement('label');
+                    consentWrapper.className = 'dynamic-form__consent';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.name = 'consent_given';
+                    checkbox.id = label.htmlFor;
+                    checkbox.value = '1';
+                    if (field.is_required) {
+                        checkbox.required = true;
+                    }
+
+                    const text = document.createElement('span');
+                    const link = document.createElement('a');
+                    link.href = this.consentUrl || '#';
+                    link.target = '_blank';
+                    link.rel = 'noopener';
+                    link.textContent = 'условиями обработки персональных данных';
+                    text.append('Я соглашаюсь с ', link);
+
+                    consentWrapper.appendChild(checkbox);
+                    consentWrapper.appendChild(text);
+                    wrapper.appendChild(consentWrapper);
+                    wrapper.appendChild(errorEl);
+                    return wrapper;
+                }
+
+                wrapper.appendChild(label);
+                wrapper.appendChild(this.createControl(field));
+                wrapper.appendChild(errorEl);
+
+                return wrapper;
+            }
+
+            createControl(field) {
+                const fieldType = field.type || 'text';
+                const controlId = `${this.root.dataset.formCode}-${field.key}`;
+
+                switch (fieldType) {
+                    case 'textarea': {
+                        const textarea = document.createElement('textarea');
+                        textarea.name = field.key;
+                        textarea.id = controlId;
+                        textarea.rows = 3;
+                        textarea.className = 'dynamic-form__control';
+                        if (field.is_required) textarea.required = true;
+                        return textarea;
+                    }
+                    case 'select': {
+                        const select = document.createElement('select');
+                        select.name = field.key;
+                        select.id = controlId;
+                        select.className = 'dynamic-form__control';
+                        if (field.is_required) select.required = true;
+
+                        const placeholder = document.createElement('option');
+                        placeholder.value = '';
+                        placeholder.textContent = 'Выберите вариант';
+                        placeholder.disabled = true;
+                        placeholder.selected = true;
+                        select.appendChild(placeholder);
+
+                        this.normalizedOptions(field.options).forEach(optionValue => {
+                            const option = document.createElement('option');
+                            option.value = optionValue;
+                            option.textContent = optionValue;
+                            select.appendChild(option);
+                        });
+                        return select;
+                    }
+                    case 'radio': {
+                        const optionsWrapper = document.createElement('div');
+                        optionsWrapper.className = 'dynamic-form__options';
+                        this.normalizedOptions(field.options).forEach((optionValue, index) => {
+                            const option = document.createElement('label');
+                            option.className = 'dynamic-form__option';
+
+                            const radio = document.createElement('input');
+                            radio.type = 'radio';
+                            radio.name = field.key;
+                            radio.value = optionValue;
+                            radio.id = `${controlId}-${index}`;
+                            if (field.is_required) radio.required = true;
+
+                            const text = document.createElement('span');
+                            text.textContent = optionValue;
+
+                            option.appendChild(radio);
+                            option.appendChild(text);
+                            optionsWrapper.appendChild(option);
+                        });
+                        return optionsWrapper;
+                    }
+                    default: {
+                        const input = document.createElement('input');
+                        input.name = field.key;
+                        input.id = controlId;
+                        input.type = this.resolveInputType(fieldType);
+                        input.className = 'dynamic-form__control';
+                        if (field.is_required) input.required = true;
+                        if (field.mask) input.placeholder = field.mask;
+                        return input;
+                    }
+                }
+            }
+
+            resolveInputType(fieldType) {
+                switch (fieldType) {
+                    case 'email':
+                        return 'email';
+                    case 'tel':
+                    case 'phone':
+                        return 'tel';
+                    case 'checkbox':
+                        return 'checkbox';
+                    case 'date':
+                        return 'date';
+                    case 'file':
+                        return 'file';
+                    default:
+                        return 'text';
+                }
+            }
+
+            normalizedOptions(options) {
+                if (Array.isArray(options)) {
+                    return options;
+                }
+
+                if (options && typeof options === 'object') {
+                    return Object.values(options);
+                }
+
+                return [];
+            }
+
+            async handleSubmit(event) {
+                event.preventDefault();
+                if (!this.formEl) {
+                    return;
+                }
+
+                this.clearErrors();
+                this.setStatus('loading', 'Отправляем данные...');
+                this.setLoading(true);
+
+                const formData = new FormData(this.formEl);
+                this.appendUtmParams(formData);
+
+                try {
+                    const response = await fetch(this.submitUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': this.csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        body: formData,
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        this.setStatus('success', data.message || 'Заявка успешно отправлена');
+                        this.formEl.reset();
+                    } else if (response.status === 422 && data.errors) {
+                        this.showErrors(data.errors);
+                        this.setStatus('error', data.message || 'Проверьте корректность полей');
+                    } else {
+                        throw new Error(data.message || 'Не удалось отправить форму');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    this.setStatus('error', error.message || 'Не удалось отправить форму');
+                } finally {
+                    this.setLoading(false);
+                }
+            }
+
+            appendUtmParams(formData) {
+                const search = new URLSearchParams(window.location.search);
+                ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'].forEach((key) => {
+                    const value = search.get(key);
+                    if (value && !formData.has(key)) {
+                        formData.append(key, value);
+                    }
+                });
+            }
+
+            clearErrors() {
+                this.root.querySelectorAll('.dynamic-form__error').forEach(error => error.textContent = '');
+            }
+
+            showErrors(errors) {
+                Object.entries(errors).forEach(([key, messages]) => {
+                    const field = this.root.querySelector(`[data-field="${key}"] .dynamic-form__error`);
+                    if (field) {
+                        field.textContent = Array.isArray(messages) ? messages.join(' ') : messages;
+                    }
+                });
+            }
+
+            setLoading(isLoading) {
+                if (!this.formEl) {
+                    return;
+                }
+
+                this.formEl.querySelectorAll('input, select, textarea, button').forEach(control => {
+                    control.disabled = isLoading;
+                });
+            }
+
+            appendHiddenInput(name, value) {
+                if (!value || !this.formEl) {
+                    return;
+                }
+
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = value;
+                this.formEl.appendChild(input);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.js-remote-form').forEach((root) => new RemoteForm(root));
         });
     })();
 </script>

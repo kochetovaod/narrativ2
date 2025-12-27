@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Service;
 use App\Services\BreadcrumbService;
+use App\Services\FormPlacementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,7 +19,8 @@ use Illuminate\View\View;
 class PublicController extends Controller
 {
     public function __construct(
-        private BreadcrumbService $breadcrumbService
+        private BreadcrumbService $breadcrumbService,
+        private FormPlacementService $formPlacementService
     ) {}
 
     /**
@@ -126,7 +128,14 @@ class PublicController extends Controller
 
         $breadcrumbs = $this->breadcrumbService->product($product, $category);
 
-        return view('public.products.show', compact('category', 'product', 'relatedProducts', 'breadcrumbs'));
+        return view('public.products.show', [
+            'breadcrumbs' => $breadcrumbs,
+            'category' => $category,
+            'formPlacements' => $this->formPlacementService->forEntity($product),
+            'pageTitle' => $product->seo['title'] ?? $product->title,
+            'product' => $product,
+            'relatedProducts' => $relatedProducts,
+        ]);
     }
 
     /**
@@ -164,7 +173,13 @@ class PublicController extends Controller
 
         $breadcrumbs = $this->breadcrumbService->service($service);
 
-        return view('public.services.show', compact('service', 'relatedServices', 'breadcrumbs'));
+        return view('public.services.show', [
+            'breadcrumbs' => $breadcrumbs,
+            'formPlacements' => $this->formPlacementService->forEntity($service),
+            'pageTitle' => $service->seo['title'] ?? $service->title,
+            'relatedServices' => $relatedServices,
+            'service' => $service,
+        ]);
     }
 
     /**
@@ -240,7 +255,13 @@ class PublicController extends Controller
 
         $breadcrumbs = $this->breadcrumbService->portfolioCase($case);
 
-        return view('public.portfolio.show', compact('case', 'relatedCases', 'breadcrumbs'));
+        return view('public.portfolio.show', [
+            'breadcrumbs' => $breadcrumbs,
+            'case' => $case,
+            'formPlacements' => $this->formPlacementService->forEntity($case),
+            'pageTitle' => $case->seo['title'] ?? $case->title,
+            'relatedCases' => $relatedCases,
+        ]);
     }
 
     /**
@@ -290,7 +311,12 @@ class PublicController extends Controller
 
         $breadcrumbs = $this->breadcrumbService->page($page);
 
-        return view('public.pages.show', compact('page', 'breadcrumbs'));
+        return view('public.pages.show', [
+            'breadcrumbs' => $breadcrumbs,
+            'formPlacements' => $this->formPlacementService->forEntity($page),
+            'page' => $page,
+            'pageTitle' => $page->seo['title'] ?? $page->title,
+        ]);
     }
 
     /**
@@ -301,7 +327,12 @@ class PublicController extends Controller
         $page = $this->findPageByCodeOrSlugOrFail('contacts', 'kontakty');
         $breadcrumbs = $this->breadcrumbService->contacts();
 
-        return view('public.pages.contacts', compact('page', 'breadcrumbs'));
+        return view('public.pages.contacts', [
+            'breadcrumbs' => $breadcrumbs,
+            'formPlacements' => $this->formPlacementService->forEntity($page),
+            'page' => $page,
+            'pageTitle' => $page->seo['title'] ?? $page->title,
+        ]);
     }
 
     /**
@@ -315,7 +346,12 @@ class PublicController extends Controller
             route(request()->route()->getName(), absolute: false)
         );
 
-        return view('public.pages.document', compact('page', 'breadcrumbs'));
+        return view('public.pages.document', [
+            'breadcrumbs' => $breadcrumbs,
+            'formPlacements' => $this->formPlacementService->forEntity($page),
+            'page' => $page,
+            'pageTitle' => $page->seo['title'] ?? $page->title,
+        ]);
     }
 
     /**

@@ -31,6 +31,15 @@
         </div>
     </section>
 
+    @if(!empty($formPlacements) && $formPlacements->isNotEmpty())
+        @foreach($formPlacements as $placement)
+            @include('public.partials.form-placement', [
+                'placement' => $placement,
+                'pageTitle' => $pageTitle ?? $product->title,
+            ])
+        @endforeach
+    @endif
+
     @if($relatedProducts->isNotEmpty())
         <section class="section">
             <h2>Похожие товары</h2>

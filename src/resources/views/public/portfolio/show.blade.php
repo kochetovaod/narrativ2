@@ -39,6 +39,15 @@
         </div>
     </section>
 
+    @if(!empty($formPlacements) && $formPlacements->isNotEmpty())
+        @foreach($formPlacements as $placement)
+            @include('public.partials.form-placement', [
+                'placement' => $placement,
+                'pageTitle' => $pageTitle ?? $case->title,
+            ])
+        @endforeach
+    @endif
+
     @if($relatedCases->isNotEmpty())
         <section class="section">
             <h2>Другие кейсы</h2>

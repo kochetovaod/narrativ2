@@ -51,7 +51,7 @@ class ContentSeeder extends Seeder
             ->sequence(
                 ['code' => 'home', 'slug' => 'home'],
                 ['code' => 'production', 'slug' => 'production'],
-                ['code' => 'contacts', 'slug' => 'contacts'],
+                ['code' => 'contacts', 'slug' => 'kontakty'],
             )
             ->create();
 
@@ -76,17 +76,17 @@ class ContentSeeder extends Seeder
         $topItems = MenuItem::factory(3)
             ->for($header)
             ->sequence(
-                ['title' => 'Продукция', 'url' => '/produkciya'],
-                ['title' => 'Услуги', 'url' => '/uslugi'],
-                ['title' => 'Контакты', 'url' => '/contacts'],
+                ['title' => 'Продукция', 'url' => route('products.index', absolute: false)],
+                ['title' => 'Услуги', 'url' => route('services.index', absolute: false)],
+                ['title' => 'Контакты', 'url' => route('contacts', absolute: false)],
             )
             ->create();
 
         MenuItem::factory(2)
             ->for($footer)
             ->sequence(
-                ['title' => 'Новости', 'url' => '/news'],
-                ['title' => 'Политика конфиденциальности', 'url' => '/privacy'],
+                ['title' => 'Новости', 'url' => route('news.index', absolute: false)],
+                ['title' => 'Политика конфиденциальности', 'url' => route('documents.privacy', absolute: false)],
             )
             ->create();
 

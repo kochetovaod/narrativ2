@@ -235,7 +235,7 @@ class MenuEditScreen extends Screen
 
         return [
             'title' => $page->title,
-            'url' => '/'.$page->slug,
+            'url' => route('pages.show', ['pageSlug' => $page->slug], absolute: false),
             'entity_type' => 'page',
             'entity_id' => $page->id,
         ];
@@ -254,7 +254,7 @@ class MenuEditScreen extends Screen
 
         return [
             'title' => $service->title,
-            'url' => '/services/'.$service->slug,
+            'url' => route('services.show', ['serviceSlug' => $service->slug], absolute: false),
             'entity_type' => 'service',
             'entity_id' => $service->id,
         ];
@@ -273,7 +273,7 @@ class MenuEditScreen extends Screen
 
         return [
             'title' => $category->title,
-            'url' => '/products/'.$category->slug,
+            'url' => route('products.category', ['categorySlug' => $category->slug], absolute: false),
             'entity_type' => 'product_category',
             'entity_id' => $category->id,
         ];

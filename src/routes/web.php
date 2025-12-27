@@ -13,18 +13,22 @@ Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->name('sitemap
 Route::get('/', [PublicController::class, 'home'])->name('home');
 
 // Категории продукции
-Route::get('/products', [PublicController::class, 'products'])->name('products.index');
-Route::get('/products/{categorySlug}', [PublicController::class, 'productsByCategory'])
-    ->name('products.category');
+Route::prefix('/produkciya')->group(function () {
+    Route::get('/', [PublicController::class, 'products'])->name('products.index');
+    Route::get('/{categorySlug}', [PublicController::class, 'productsByCategory'])
+        ->name('products.category');
 
-// Товары
-Route::get('/products/{categorySlug}/{productSlug}', [PublicController::class, 'product'])
-    ->name('products.show');
+    // Товары
+    Route::get('/{categorySlug}/{productSlug}', [PublicController::class, 'product'])
+        ->name('products.show');
+});
 
 // Услуги
-Route::get('/services', [PublicController::class, 'services'])->name('services.index');
-Route::get('/services/{serviceSlug}', [PublicController::class, 'service'])
-    ->name('services.show');
+Route::prefix('/uslugi')->group(function () {
+    Route::get('/', [PublicController::class, 'services'])->name('services.index');
+    Route::get('/{serviceSlug}', [PublicController::class, 'service'])
+        ->name('services.show');
+});
 
 // Портфолио
 Route::get('/portfolio', [PublicController::class, 'portfolio'])->name('portfolio.index');
@@ -57,6 +61,23 @@ Route::get('/forms/preview/{formCode}', [FormController::class, 'preview'])
     ->name('forms.preview');
 
 Route::get('/health', fn () => ['status' => 'ok']);
+
+// Контакты
+Route::get('/kontakty', [PublicController::class, 'contacts'])->name('contacts');
+
+// Документы
+Route::get('/privacy', [PublicController::class, 'document'])
+    ->defaults('documentCode', 'privacy')
+    ->name('documents.privacy');
+Route::get('/consent', [PublicController::class, 'document'])
+    ->defaults('documentCode', 'consent')
+    ->name('documents.consent');
+Route::get('/terms', [PublicController::class, 'document'])
+    ->defaults('documentCode', 'terms')
+    ->name('documents.terms');
+Route::get('/cookies', [PublicController::class, 'document'])
+    ->defaults('documentCode', 'cookies')
+    ->name('documents.cookies');
 
 // Статические страницы
 Route::get('/{pageSlug}', [PublicController::class, 'page'])

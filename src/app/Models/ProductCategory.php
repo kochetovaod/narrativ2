@@ -50,6 +50,6 @@ class ProductCategory extends Model
     {
         $slug = $attributes['slug'] ?? $this->slug ?? '';
 
-        return '/products/'.$slug;
+        return route('products.category', ['categorySlug' => $slug], absolute: false);
     }
 }

@@ -51,6 +51,6 @@ class Service extends Model
     {
         $slug = $attributes['slug'] ?? $this->slug ?? '';
 
-        return '/services/'.$slug;
+        return route('services.show', ['serviceSlug' => $slug], absolute: false);
     }
 }

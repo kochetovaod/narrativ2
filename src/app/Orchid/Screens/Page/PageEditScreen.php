@@ -371,6 +371,17 @@ class PageEditScreen extends Screen
             'contacts' => [
                 'title' => '',
                 'contact_type' => 'embedded',
+                'phone' => '',
+                'email' => '',
+                'address' => '',
+                'work_hours' => '',
+                'map_embed' => '',
+                'cta_title' => '',
+                'cta_text' => '',
+                'cta_button_text' => '',
+                'cta_button_link' => '',
+                'cta_secondary_text' => '',
+                'cta_secondary_link' => '',
             ],
             'gallery' => [
                 'title' => '',

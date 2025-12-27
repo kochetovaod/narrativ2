@@ -22,7 +22,7 @@ class BreadcrumbService
         return [
             [
                 'title' => 'Главная',
-                'url' => '/',
+                'url' => route('home', absolute: false),
                 'is_active' => true,
             ],
         ];
@@ -36,12 +36,12 @@ class BreadcrumbService
         $breadcrumbs = $this->home();
         $breadcrumbs[] = [
             'title' => 'Продукция',
-            'url' => '/products',
+            'url' => route('products.index', absolute: false),
             'is_active' => false,
         ];
         $breadcrumbs[] = [
             'title' => $category->title,
-            'url' => '/products/'.$category->slug,
+            'url' => route('products.category', ['categorySlug' => $category->slug], absolute: false),
             'is_active' => true,
         ];
 
@@ -56,17 +56,20 @@ class BreadcrumbService
         $breadcrumbs = $this->home();
         $breadcrumbs[] = [
             'title' => 'Продукция',
-            'url' => '/products',
+            'url' => route('products.index', absolute: false),
             'is_active' => false,
         ];
         $breadcrumbs[] = [
             'title' => $category->title,
-            'url' => '/products/'.$category->slug,
+            'url' => route('products.category', ['categorySlug' => $category->slug], absolute: false),
             'is_active' => false,
         ];
         $breadcrumbs[] = [
             'title' => $product->title,
-            'url' => '/products/'.$category->slug.'/'.$product->slug,
+            'url' => route('products.show', [
+                'categorySlug' => $category->slug,
+                'productSlug' => $product->slug,
+            ], absolute: false),
             'is_active' => true,
         ];
 
@@ -81,12 +84,12 @@ class BreadcrumbService
         $breadcrumbs = $this->home();
         $breadcrumbs[] = [
             'title' => 'Услуги',
-            'url' => '/services',
+            'url' => route('services.index', absolute: false),
             'is_active' => false,
         ];
         $breadcrumbs[] = [
             'title' => $service->title,
-            'url' => '/services/'.$service->slug,
+            'url' => route('services.show', ['serviceSlug' => $service->slug], absolute: false),
             'is_active' => true,
         ];
 
@@ -101,12 +104,12 @@ class BreadcrumbService
         $breadcrumbs = $this->home();
         $breadcrumbs[] = [
             'title' => 'Портфолио',
-            'url' => '/portfolio',
+            'url' => route('portfolio.index', absolute: false),
             'is_active' => false,
         ];
         $breadcrumbs[] = [
             'title' => $case->title,
-            'url' => '/portfolio/'.$case->slug,
+            'url' => route('portfolio.show', ['caseSlug' => $case->slug], absolute: false),
             'is_active' => true,
         ];
 
@@ -121,12 +124,12 @@ class BreadcrumbService
         $breadcrumbs = $this->home();
         $breadcrumbs[] = [
             'title' => 'Новости',
-            'url' => '/news',
+            'url' => route('news.index', absolute: false),
             'is_active' => false,
         ];
         $breadcrumbs[] = [
             'title' => $news->title,
-            'url' => '/news/'.$news->slug,
+            'url' => route('news.show', ['newsSlug' => $news->slug], absolute: false),
             'is_active' => true,
         ];
 
@@ -141,7 +144,7 @@ class BreadcrumbService
         $breadcrumbs = $this->home();
         $breadcrumbs[] = [
             'title' => $page->title,
-            'url' => '/'.$page->slug,
+            'url' => route('pages.show', ['pageSlug' => $page->slug], absolute: false),
             'is_active' => true,
         ];
 
@@ -156,7 +159,7 @@ class BreadcrumbService
         $breadcrumbs = $this->home();
         $breadcrumbs[] = [
             'title' => 'Поиск',
-            'url' => '/search',
+            'url' => route('search', absolute: false),
             'is_active' => true,
         ];
 
@@ -190,6 +193,11 @@ class BreadcrumbService
             'news.index' => $this->news(),
             'news.show' => $this->newsPostBySlug($routeParameters['newsSlug'] ?? ''),
             'pages.show' => $this->pageBySlug($routeParameters['pageSlug'] ?? ''),
+            'contacts' => $this->contacts(),
+            'documents.privacy' => $this->document('Политика конфиденциальности', route('documents.privacy', absolute: false)),
+            'documents.consent' => $this->document('Согласие на обработку ПДн', route('documents.consent', absolute: false)),
+            'documents.terms' => $this->document('Пользовательское соглашение', route('documents.terms', absolute: false)),
+            'documents.cookies' => $this->document('Политика cookie', route('documents.cookies', absolute: false)),
             'search' => $this->search(request()->get('q')),
             default => $this->home(),
         };
@@ -203,7 +211,7 @@ class BreadcrumbService
         $breadcrumbs = $this->home();
         $breadcrumbs[] = [
             'title' => 'Продукция',
-            'url' => '/products',
+            'url' => route('products.index', absolute: false),
             'is_active' => true,
         ];
 
@@ -218,7 +226,7 @@ class BreadcrumbService
         $breadcrumbs = $this->home();
         $breadcrumbs[] = [
             'title' => 'Услуги',
-            'url' => '/services',
+            'url' => route('services.index', absolute: false),
             'is_active' => true,
         ];
 
@@ -233,7 +241,7 @@ class BreadcrumbService
         $breadcrumbs = $this->home();
         $breadcrumbs[] = [
             'title' => 'Портфолио',
-            'url' => '/portfolio',
+            'url' => route('portfolio.index', absolute: false),
             'is_active' => true,
         ];
 
@@ -248,7 +256,7 @@ class BreadcrumbService
         $breadcrumbs = $this->home();
         $breadcrumbs[] = [
             'title' => 'Новости',
-            'url' => '/news',
+            'url' => route('news.index', absolute: false),
             'is_active' => true,
         ];
 
@@ -353,6 +361,30 @@ class BreadcrumbService
         }
 
         return $this->page($page);
+    }
+
+    public function contacts(): array
+    {
+        $breadcrumbs = $this->home();
+        $breadcrumbs[] = [
+            'title' => 'Контакты',
+            'url' => route('contacts', absolute: false),
+            'is_active' => true,
+        ];
+
+        return $breadcrumbs;
+    }
+
+    public function document(string $title, ?string $url = null): array
+    {
+        $breadcrumbs = $this->home();
+        $breadcrumbs[] = [
+            'title' => $title,
+            'url' => $url ?? request()->getPathInfo(),
+            'is_active' => true,
+        ];
+
+        return $breadcrumbs;
     }
 
     /**

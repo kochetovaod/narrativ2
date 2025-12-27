@@ -294,7 +294,7 @@ class ImportExportSeeder extends Seeder
                     'budget' => '1000000',
                     'timeline' => '6 месяцев',
                 ],
-                'source_url' => 'https://site.ru/services',
+                'source_url' => 'https://site.ru/uslugi',
                 'page_title' => 'Услуги',
                 'utm' => [
                     'source' => 'direct',

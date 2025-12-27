@@ -286,14 +286,36 @@ class PublicController extends Controller
      */
     public function page(string $pageSlug): View
     {
-        $page = Page::query()
-            ->published()
-            ->where('slug', $pageSlug)
-            ->firstOrFail();
+        $page = $this->findPageBySlugOrFail($pageSlug);
 
         $breadcrumbs = $this->breadcrumbService->page($page);
 
         return view('public.pages.show', compact('page', 'breadcrumbs'));
+    }
+
+    /**
+     * Страница контактов
+     */
+    public function contacts(): View
+    {
+        $page = $this->findPageByCodeOrSlugOrFail('contacts', 'kontakty');
+        $breadcrumbs = $this->breadcrumbService->contacts();
+
+        return view('public.pages.contacts', compact('page', 'breadcrumbs'));
+    }
+
+    /**
+     * Юридические документы
+     */
+    public function document(string $documentCode): View
+    {
+        $page = $this->findPageByCodeOrSlugOrFail($documentCode, $documentCode);
+        $breadcrumbs = $this->breadcrumbService->document(
+            $page->title,
+            route(request()->route()->getName(), absolute: false)
+        );
+
+        return view('public.pages.document', compact('page', 'breadcrumbs'));
     }
 
     /**
@@ -441,5 +463,23 @@ class PublicController extends Controller
         }
 
         return response()->json($suggestions->values());
+    }
+
+    private function findPageBySlugOrFail(string $slug): Page
+    {
+        return Page::query()
+            ->published()
+            ->where('slug', $slug)
+            ->firstOrFail();
+    }
+
+    private function findPageByCodeOrSlugOrFail(string $code, string $slug): Page
+    {
+        return Page::query()
+            ->published()
+            ->where(fn ($query) => $query
+                ->where('code', $code)
+                ->orWhere('slug', $slug))
+            ->firstOrFail();
     }
 }

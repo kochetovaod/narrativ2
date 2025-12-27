@@ -35,6 +35,15 @@
         </div>
     </section>
 
+    @if(!empty($formPlacements) && $formPlacements->isNotEmpty())
+        @foreach($formPlacements as $placement)
+            @include('public.partials.form-placement', [
+                'placement' => $placement,
+                'pageTitle' => $pageTitle ?? $service->title,
+            ])
+        @endforeach
+    @endif
+
     @if($service->show_cases && $service->portfolioCases->isNotEmpty())
         <section class="section">
             <h2>Примеры работ</h2>

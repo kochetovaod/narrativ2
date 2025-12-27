@@ -19,4 +19,13 @@
     @else
         <p>Документ пока не заполнен.</p>
     @endif
+
+    @if(!empty($formPlacements) && $formPlacements->isNotEmpty())
+        @foreach($formPlacements as $placement)
+            @include('public.partials.form-placement', [
+                'placement' => $placement,
+                'pageTitle' => $pageTitle ?? $page->title,
+            ])
+        @endforeach
+    @endif
 @endsection

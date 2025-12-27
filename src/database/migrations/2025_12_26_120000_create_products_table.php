@@ -34,7 +34,7 @@ return new class extends Migration
             $table->string('slug');
             $table->text('short_text')->nullable();
             $table->longText('description')->nullable();
-            $table->json('specs');
+            $table->json('specs')->nullable();
             $table->enum('status', ['draft', 'published'])->default('draft');
             $table->timestamp('published_at')->nullable();
             $table->json('seo')->nullable();

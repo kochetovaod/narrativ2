@@ -15,10 +15,17 @@ class TrackingEventFactory extends Factory
     public function definition(): array
     {
         return [
-            'event_type' => $this->faker->randomElement(['form_submit', 'click_tel', 'click_telegram', 'click_whatsapp']),
-            'source_url' => $this->faker->url(),
+            'event_type' => $this->faker->randomElement(['form_submit', 'conversion', 'click', 'page_view', 'form_interaction', 'engagement']),
+            'event_name' => $this->faker->randomElement(['form_submit', 'form_start', 'scroll_depth']),
+            'data' => ['payload' => $this->faker->words(2, true)],
+            'source_url' => $this->faker->optional()->url(),
             'utm' => ['utm_campaign' => $this->faker->word()],
             'client_id' => $this->faker->optional()->uuid(),
+            'ip' => $this->faker->ipv4(),
+            'user_agent' => $this->faker->userAgent(),
+            'session_id' => $this->faker->uuid(),
+            'page_url' => $this->faker->url(),
+            'referer' => $this->faker->optional()->url(),
             'created_at' => $this->faker->dateTimeBetween('-1 month', 'now'),
         ];
     }

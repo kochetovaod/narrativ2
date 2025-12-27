@@ -53,6 +53,7 @@ class FormSubmissionTest extends TestCase
             'name' => 'Иван',
             'email' => 'ivan@example.com',
             'consent_given' => true,
+            'consent_doc_url' => 'https://example.com/privacy',
             'source_url' => 'https://example.com/landing',
             'page_title' => 'Лендинг',
             'utm_source' => 'adwords',
@@ -74,6 +75,7 @@ class FormSubmissionTest extends TestCase
         $this->assertSame($form->code, $lead->form_code);
         $this->assertSame('ivan@example.com', $lead->email);
         $this->assertTrue($lead->consent_given);
+        $this->assertSame('https://example.com/privacy', $lead->consent_doc_url);
         $this->assertSame('https://example.com/landing', $lead->source_url);
         $this->assertEqualsCanonicalizing([
             'utm_source' => 'adwords',
@@ -81,11 +83,22 @@ class FormSubmissionTest extends TestCase
         ], $lead->utm ?? []);
         $this->assertArrayHasKey('_submitted_at', $lead->payload);
         $this->assertSame('Иван', $lead->payload['name']);
+        $this->assertSame('https://example.com/privacy', $lead->payload['_consent_doc_url']);
 
         $this->assertDatabaseHas('lead_dedup_index', [
             'lead_id' => $lead->id,
             'contact_key' => 'email:ivan@example.com',
             'created_date' => today()->toDateString(),
+        ]);
+
+        $this->assertDatabaseCount('tracking_events', 2);
+        $this->assertDatabaseHas('tracking_events', [
+            'event_type' => 'form_submit',
+            'event_name' => 'form_submit',
+        ]);
+        $this->assertDatabaseHas('tracking_events', [
+            'event_type' => 'conversion',
+            'event_name' => 'form_callback',
         ]);
     }
 

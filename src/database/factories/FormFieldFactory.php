@@ -19,7 +19,7 @@ class FormFieldFactory extends Factory
             'form_id' => Form::factory(),
             'key' => $this->faker->unique()->word(),
             'label' => $this->faker->words(2, true),
-            'type' => $this->faker->randomElement(['text', 'textarea', 'phone', 'email', 'select', 'checkbox']),
+            'type' => $this->faker->randomElement(['text', 'textarea', 'tel', 'email', 'select', 'checkbox', 'radio', 'date', 'file']),
             'mask' => null,
             'is_required' => $this->faker->boolean(70),
             'sort' => $this->faker->numberBetween(1, 10),

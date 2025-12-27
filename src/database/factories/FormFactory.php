@@ -22,7 +22,7 @@ class FormFactory extends Factory
             'is_active' => true,
             'notification_email' => [$this->faker->safeEmail()],
             'notification_telegram' => ['chat_id' => $this->faker->numberBetween(10_000, 9_999_999)],
-            'captcha_mode' => $this->faker->randomElement(['off', 'on', 'adaptive']),
+            'captcha_mode' => $this->faker->randomElement(['none', 'recaptcha', 'hcaptcha']),
         ];
     }
 }

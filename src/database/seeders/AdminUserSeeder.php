@@ -36,6 +36,8 @@ class AdminUserSeeder extends Seeder
                 'name' => $adminName,
                 'password' => Hash::make($adminPassword),
                 'permissions' => $role->permissions,
+                'role' => 'super_admin',
+                'is_active' => true,
             ],
         );
 

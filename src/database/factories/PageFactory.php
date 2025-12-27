@@ -2,35 +2,34 @@
 
 namespace Database\Factories;
 
-use App\Models\Service;
+use App\Models\Page;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends Factory<Service>
+ * @extends Factory<Page>
  */
-class ServiceFactory extends Factory
+class PageFactory extends Factory
 {
-    protected $model = Service::class;
+    protected $model = Page::class;
 
     public function definition(): array
     {
-        $title = $this->faker->words(2, true);
+        $title = $this->faker->sentence(3);
 
         return [
+            'code' => null,
             'title' => $title,
             'slug' => Str::slug($title . '-' . $this->faker->unique()->numberBetween(1, 9999)),
-            'content' => [
+            'sections' => [
                 ['type' => 'text', 'value' => $this->faker->paragraph()],
             ],
             'status' => $this->faker->randomElement(['draft', 'published']),
-            'published_at' => $this->faker->optional()->dateTimeBetween('-3 months', 'now'),
+            'published_at' => $this->faker->optional()->dateTimeBetween('-2 months', 'now'),
             'seo' => [
                 'title' => $title,
                 'description' => $this->faker->sentence(),
             ],
-            'schema_json' => ['type' => 'Service'],
-            'show_cases' => $this->faker->boolean(80),
         ];
     }
 }

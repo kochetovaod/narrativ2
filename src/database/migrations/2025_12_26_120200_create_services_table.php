@@ -14,9 +14,13 @@ return new class extends Migration
         Schema::create('services', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->longText('content')->nullable();
-            $table->string('status')->default('draft');
+            $table->string('slug')->unique();
+            $table->json('content');
+            $table->enum('status', ['draft', 'published'])->default('draft');
             $table->timestamp('published_at')->nullable();
+            $table->json('seo')->nullable();
+            $table->json('schema_json')->nullable();
+            $table->boolean('show_cases')->default(true);
             $table->timestamps();
 
             $table->index('status');

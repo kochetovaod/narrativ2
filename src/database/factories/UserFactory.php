@@ -28,6 +28,13 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'role' => fake()->randomElement(['super_admin', 'admin', 'content_manager']),
+            'is_active' => true,
+            'last_login_at' => fake()->dateTimeBetween('-1 month'),
+            'telegram_id' => fake()->optional()->unique()->numberBetween(10_000, 9_999_999),
+            'telegram_username' => fake()->optional()->userName(),
+            'telegram_chat_id' => fake()->optional()->numberBetween(10_000, 9_999_999),
+            'telegram_verified_at' => fake()->optional()->dateTimeBetween('-2 months'),
             'remember_token' => Str::random(10),
             'permissions' => [],
         ];

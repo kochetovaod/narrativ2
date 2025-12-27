@@ -2,70 +2,45 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasMediaCollections;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Laravel\Scout\Searchable;
-use Spatie\MediaLibrary\HasMedia;
 
-class PortfolioCase extends Model implements HasMedia
+class PortfolioCase extends Model
 {
     use HasFactory;
-    use HasMediaCollections;
-    use Searchable;
 
     protected $fillable = [
         'title',
+        'slug',
         'description',
         'client_name',
         'is_nda',
-        'status',
+        'public_client_label',
         'date',
+        'status',
         'published_at',
+        'seo',
     ];
 
     protected $casts = [
         'is_nda' => 'boolean',
         'date' => 'date',
         'published_at' => 'datetime',
+        'seo' => 'array',
     ];
 
-    public function searchableAs(): string
+    public function products()
     {
-        return 'portfolio_cases';
+        return $this->belongsToMany(Product::class, 'portfolio_case_product', 'case_id', 'product_id');
     }
 
-    public function toSearchableArray(): array
+    public function services()
     {
-        return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'description' => $this->description,
-            'client_name' => $this->client_name,
-            'is_nda' => $this->is_nda,
-            'status' => $this->status,
-            'date' => optional($this->date)?->toDateString(),
-            'published_at' => optional($this->published_at)?->toIso8601String(),
-        ];
+        return $this->belongsToMany(Service::class, 'portfolio_case_service', 'case_id', 'service_id');
     }
 
-    public function registerMediaCollections(): void
+    public function mediaLinks()
     {
-        $this->addMediaCollection('cover')
-            ->singleFile()
-            ->acceptsMimeTypes($this->imageMimeTypes())
-            ->withResponsiveImages();
-
-        $this->addMediaCollection('gallery')
-            ->acceptsMimeTypes($this->imageMimeTypes())
-            ->withResponsiveImages();
-
-        $this->addMediaCollection('documents')
-            ->acceptsMimeTypes($this->documentMimeTypes());
-    }
-
-    protected function imageCollections(): array
-    {
-        return ['cover', 'gallery'];
+        return $this->morphMany(MediaLink::class, 'entity');
     }
 }

@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Orchid\Platform\Models\User as OrchidUser;
 
 class User extends OrchidUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +23,12 @@ class User extends OrchidUser
         'password',
         'permissions',
         'last_login_at',
+        'role',
+        'is_active',
+        'telegram_id',
+        'telegram_username',
+        'telegram_chat_id',
+        'telegram_verified_at',
     ];
 
     /**
@@ -42,6 +50,9 @@ class User extends OrchidUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'permissions' => 'array',
+            'is_active' => 'boolean',
+            'last_login_at' => 'datetime',
+            'telegram_verified_at' => 'datetime',
         ];
     }
 }

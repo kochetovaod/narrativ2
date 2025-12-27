@@ -14,12 +14,15 @@ return new class extends Migration
         Schema::create('portfolio_cases', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->string('slug')->unique();
             $table->longText('description')->nullable();
             $table->string('client_name')->nullable();
             $table->boolean('is_nda')->default(false);
-            $table->string('status')->default('draft');
+            $table->string('public_client_label')->nullable();
             $table->date('date')->nullable();
+            $table->enum('status', ['draft', 'published'])->default('draft');
             $table->timestamp('published_at')->nullable();
+            $table->json('seo')->nullable();
             $table->timestamps();
 
             $table->index('is_nda');

@@ -2,16 +2,16 @@
 
 namespace Database\Factories;
 
-use App\Models\Service;
+use App\Models\ProductCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends Factory<Service>
+ * @extends Factory<ProductCategory>
  */
-class ServiceFactory extends Factory
+class ProductCategoryFactory extends Factory
 {
-    protected $model = Service::class;
+    protected $model = ProductCategory::class;
 
     public function definition(): array
     {
@@ -20,17 +20,19 @@ class ServiceFactory extends Factory
         return [
             'title' => $title,
             'slug' => Str::slug($title . '-' . $this->faker->unique()->numberBetween(1, 9999)),
-            'content' => [
-                ['type' => 'text', 'value' => $this->faker->paragraph()],
+            'intro_text' => $this->faker->optional()->paragraph(),
+            'body' => [
+                'blocks' => [
+                    ['type' => 'text', 'content' => $this->faker->paragraph()],
+                ],
             ],
             'status' => $this->faker->randomElement(['draft', 'published']),
-            'published_at' => $this->faker->optional()->dateTimeBetween('-3 months', 'now'),
+            'published_at' => $this->faker->optional()->dateTimeBetween('-2 weeks', 'now'),
             'seo' => [
                 'title' => $title,
                 'description' => $this->faker->sentence(),
             ],
-            'schema_json' => ['type' => 'Service'],
-            'show_cases' => $this->faker->boolean(80),
+            'schema_json' => ['type' => 'Category'],
         ];
     }
 }

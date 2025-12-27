@@ -2,6 +2,7 @@
 
 namespace App\Orchid;
 
+use App\Orchid\Permissions\Rbac;
 use Orchid\Platform\Dashboard;
 use Orchid\Platform\ItemPermission;
 use Orchid\Platform\OrchidServiceProvider;
@@ -26,18 +27,19 @@ class PlatformProvider extends OrchidServiceProvider
             Menu::make(__('Панель управления'))
                 ->icon('monitor')
                 ->route('platform.main')
+                ->permission(Rbac::PERMISSION_ACCESS)
                 ->title(__('Навигация')),
 
             Menu::make(__('Пользователи'))
                 ->icon('user')
                 ->route('platform.systems.users')
-                ->permission('platform.systems.users')
+                ->permission(Rbac::PERMISSION_USERS)
                 ->title(__('Система')),
 
             Menu::make(__('Роли'))
                 ->icon('lock')
                 ->route('platform.systems.roles')
-                ->permission('platform.systems.roles'),
+                ->permission(Rbac::PERMISSION_ROLES),
         ];
     }
 
@@ -58,10 +60,17 @@ class PlatformProvider extends OrchidServiceProvider
      */
     public function registerPermissions(): array
     {
-        return [
-            ItemPermission::group(__('Система'))
-                ->addPermission('platform.systems.users', __('Управление пользователями'))
-                ->addPermission('platform.systems.roles', __('Управление ролями')),
-        ];
+        return collect(Rbac::permissionGroups())
+            ->map(static function (array $permissions, string $group): ItemPermission {
+                $permissionGroup = ItemPermission::group(__($group));
+
+                foreach ($permissions as $key => $label) {
+                    $permissionGroup->addPermission($key, __($label));
+                }
+
+                return $permissionGroup;
+            })
+            ->values()
+            ->all();
     }
 }

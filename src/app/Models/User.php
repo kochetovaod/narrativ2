@@ -14,6 +14,29 @@ class User extends OrchidUser
     use SoftDeletes;
 
     /**
+     * @var list<string>
+     */
+    protected $allowedSorts = [
+        'id',
+        'name',
+        'email',
+        'role',
+        'is_active',
+        'updated_at',
+    ];
+
+    /**
+     * @var list<string>
+     */
+    protected $allowedFilters = [
+        'id',
+        'name',
+        'email',
+        'role',
+        'is_active',
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>

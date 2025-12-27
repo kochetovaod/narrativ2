@@ -65,6 +65,34 @@
             font-weight: 600;
         }
 
+        nav li {
+            position: relative;
+        }
+
+        nav .submenu {
+            position: absolute;
+            display: none;
+            flex-direction: column;
+            gap: 0.35rem;
+            background: #0b1220;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            top: 120%;
+            left: 0;
+            min-width: 200px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.35);
+        }
+
+        nav li:hover .submenu {
+            display: flex;
+        }
+
+        nav .submenu a {
+            color: #e2e8f0;
+            font-weight: 500;
+            display: block;
+        }
+
         .search {
             margin-left: auto;
             position: relative;
@@ -291,6 +319,14 @@
             border-color: #0ea5e9;
         }
 
+        .map-embed iframe {
+            width: 100%;
+            min-height: 280px;
+            border: 0;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+
         @media (max-width: 900px) {
             .nav-container {
                 flex-wrap: wrap;
@@ -308,29 +344,7 @@
     </style>
 </head>
 <body>
-<header class="site-header">
-    <div class="container nav-container">
-        <a href="{{ route('home') }}" class="logo">{{ config('app.name', 'Narrativ') }}</a>
-
-        <nav aria-label="Основная навигация">
-            <ul>
-                <li><a href="{{ route('products.index') }}">Продукция</a></li>
-                <li><a href="{{ route('services.index') }}">Услуги</a></li>
-                <li><a href="{{ route('portfolio.index') }}">Портфолио</a></li>
-                <li><a href="{{ route('news.index') }}">Новости</a></li>
-            </ul>
-        </nav>
-
-        <form class="search" action="{{ route('search') }}" method="get" role="search">
-            <input id="search-input" name="q" value="{{ request('q') }}" type="search"
-                   placeholder="Поиск по сайту"
-                   aria-label="Поиск по сайту"
-                   data-suggestions-url="{{ route('search.suggestions') }}">
-            <button type="submit">Поиск</button>
-            <div class="search-suggestions" id="search-suggestions"></div>
-        </form>
-    </div>
-</header>
+@include('components.menu.header')
 
 <main>
     <div class="container">
@@ -342,27 +356,7 @@
     </div>
 </main>
 
-<footer class="site-footer">
-    <div class="container footer-grid">
-        <div>
-            <div class="logo">{{ config('app.name', 'Narrativ') }}</div>
-            <p>Дизайн, производство и внедрение решений под ключ.</p>
-        </div>
-        <div>
-            <div class="meta" style="margin-bottom: 0.5rem;">Контакты</div>
-            <p>Тел.: <a href="tel:+7">+7 (000) 000-00-00</a></p>
-            <p>Email: <a href="mailto:hello@example.com">hello@example.com</a></p>
-        </div>
-        <div>
-            <div class="meta" style="margin-bottom: 0.5rem;">Соцсети</div>
-            <div class="list-inline">
-                <a href="#" aria-label="Telegram">Telegram</a>
-                <a href="#" aria-label="WhatsApp">WhatsApp</a>
-                <a href="#" aria-label="VK">VK</a>
-            </div>
-        </div>
-    </div>
-</footer>
+@include('components.menu.footer')
 
 <script>
     (function () {

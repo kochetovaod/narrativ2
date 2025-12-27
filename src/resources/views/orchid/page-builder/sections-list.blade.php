@@ -363,6 +363,62 @@ function generateContactsContent(settings) {
                 <option value="global_block" ${settings.contact_type === 'global_block' ? 'selected' : ''}>{{ __('Глобальный блок') }}</option>
             </select>
         </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>{{ __('Телефон') }}</label>
+                    <input type="text" class="form-control" name="sections[${getCurrentSectionIndex()}][settings][phone]" 
+                           value="${settings.phone || ''}" placeholder="+7 (000) 000-00-00">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>{{ __('Email') }}</label>
+                    <input type="text" class="form-control" name="sections[${getCurrentSectionIndex()}][settings][email]" 
+                           value="${settings.email || ''}" placeholder="info@example.com">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>{{ __('Адрес') }}</label>
+                    <input type="text" class="form-control" name="sections[${getCurrentSectionIndex()}][settings][address]" 
+                           value="${settings.address || ''}" placeholder="{{ __('г. Москва, ул. Примерная, д. 1') }}">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>{{ __('Часы работы') }}</label>
+                    <input type="text" class="form-control" name="sections[${getCurrentSectionIndex()}][settings][work_hours]" 
+                           value="${settings.work_hours || ''}" placeholder="{{ __('Пн-Пт: 09:00-18:00') }}">
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>{{ __('Карта (iframe или embed)') }}</label>
+            <textarea class="form-control" rows="3" name="sections[${getCurrentSectionIndex()}][settings][map_embed]" placeholder="{{ __('Вставьте код карты') }}">${settings.map_embed || ''}</textarea>
+        </div>
+        <div class="form-group">
+            <label>{{ __('CTA блок') }}</label>
+            <input type="text" class="form-control mb-2" name="sections[${getCurrentSectionIndex()}][settings][cta_title]" 
+                   value="${settings.cta_title || ''}" placeholder="{{ __('Заголовок CTA') }}">
+            <textarea class="form-control mb-2" rows="2" name="sections[${getCurrentSectionIndex()}][settings][cta_text]" placeholder="{{ __('Описание CTA') }}">${settings.cta_text || ''}</textarea>
+            <div class="row">
+                <div class="col-md-6">
+                    <input type="text" class="form-control mb-2" name="sections[${getCurrentSectionIndex()}][settings][cta_button_text]" 
+                           value="${settings.cta_button_text || ''}" placeholder="{{ __('Текст кнопки') }}">
+                    <input type="text" class="form-control" name="sections[${getCurrentSectionIndex()}][settings][cta_button_link]" 
+                           value="${settings.cta_button_link || ''}" placeholder="{{ __('Ссылка кнопки') }}">
+                </div>
+                <div class="col-md-6">
+                    <input type="text" class="form-control mb-2" name="sections[${getCurrentSectionIndex()}][settings][cta_secondary_text]" 
+                           value="${settings.cta_secondary_text || ''}" placeholder="{{ __('Вторичная кнопка (текст)') }}">
+                    <input type="text" class="form-control" name="sections[${getCurrentSectionIndex()}][settings][cta_secondary_link]" 
+                           value="${settings.cta_secondary_link || ''}" placeholder="{{ __('Ссылка вторичной кнопки') }}">
+                </div>
+            </div>
+        </div>
     `;
 }
 

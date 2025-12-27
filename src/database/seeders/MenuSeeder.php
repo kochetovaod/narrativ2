@@ -53,7 +53,7 @@ class MenuSeeder extends Seeder
         $productsItem = MenuItem::create([
             'menu_id' => $menu->id,
             'title' => 'Продукция',
-            'url' => '/products',
+            'url' => route('products.index', absolute: false),
             'sort' => 1,
             'is_visible' => true,
         ]);
@@ -61,7 +61,7 @@ class MenuSeeder extends Seeder
         $servicesItem = MenuItem::create([
             'menu_id' => $menu->id,
             'title' => 'Услуги',
-            'url' => '/services',
+            'url' => route('services.index', absolute: false),
             'sort' => 2,
             'is_visible' => true,
         ]);
@@ -82,19 +82,11 @@ class MenuSeeder extends Seeder
             'is_visible' => true,
         ]);
 
-        $aboutItem = MenuItem::create([
-            'menu_id' => $menu->id,
-            'title' => 'О компании',
-            'url' => '/about',
-            'sort' => 5,
-            'is_visible' => true,
-        ]);
-
         $contactItem = MenuItem::create([
             'menu_id' => $menu->id,
             'title' => 'Контакты',
-            'url' => '/contacts',
-            'sort' => 6,
+            'url' => route('contacts', absolute: false),
+            'sort' => 5,
             'is_visible' => true,
         ]);
     }
@@ -111,15 +103,15 @@ class MenuSeeder extends Seeder
 
         // Создаем элементы нижнего меню
         $legalItems = [
-            ['title' => 'Политика конфиденциальности', 'url' => '/privacy'],
-            ['title' => 'Условия использования', 'url' => '/terms'],
-            ['title' => 'Согласие на обработку ПДн', 'url' => '/consent'],
-            ['title' => 'Политика cookie', 'url' => '/cookies'],
+            ['title' => 'Политика конфиденциальности', 'url' => route('documents.privacy', absolute: false)],
+            ['title' => 'Условия использования', 'url' => route('documents.terms', absolute: false)],
+            ['title' => 'Согласие на обработку ПДн', 'url' => route('documents.consent', absolute: false)],
+            ['title' => 'Политика cookie', 'url' => route('documents.cookies', absolute: false)],
         ];
 
         $contactItems = [
-            ['title' => 'Контакты', 'url' => '/contacts'],
-            ['title' => 'Карта сайта', 'url' => '/sitemap'],
+            ['title' => 'Контакты', 'url' => route('contacts', absolute: false)],
+            ['title' => 'Карта сайта', 'url' => route('sitemap', absolute: false)],
         ];
 
         // Создаем группу "Правовая информация"
@@ -166,7 +158,7 @@ class MenuSeeder extends Seeder
         $footerProducts = MenuItem::create([
             'menu_id' => $menu->id,
             'title' => 'Продукция',
-            'url' => '/products',
+            'url' => route('products.index', absolute: false),
             'sort' => 2,
             'is_visible' => true,
         ]);
@@ -174,7 +166,7 @@ class MenuSeeder extends Seeder
         $footerServices = MenuItem::create([
             'menu_id' => $menu->id,
             'title' => 'Услуги',
-            'url' => '/services',
+            'url' => route('services.index', absolute: false),
             'sort' => 3,
             'is_visible' => true,
         ]);

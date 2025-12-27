@@ -58,7 +58,10 @@ class Product extends Model
         $slug = $attributes['slug'] ?? $this->slug ?? '';
         $categoryId = $attributes['category_id'] ?? $this->category_id;
 
-        return '/products/'.$this->resolveCategorySlug((int) $categoryId).'/'.$slug;
+        return route('products.show', [
+            'categorySlug' => $this->resolveCategorySlug((int) $categoryId),
+            'productSlug' => $slug,
+        ], absolute: false);
     }
 
     protected function pathDependenciesChanged(): bool

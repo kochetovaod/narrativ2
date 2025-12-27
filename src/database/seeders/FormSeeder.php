@@ -24,6 +24,8 @@ class FormSeeder extends Seeder
      */
     private function createCallbackForm(): void
     {
+        $consentDocUrl = 'https://site.ru/privacy';
+
         $form = Form::firstOrCreate(
             ['code' => 'callback'],
             [
@@ -79,7 +81,7 @@ class FormSeeder extends Seeder
                 'mask' => '',
                 'is_required' => true,
                 'sort' => 3,
-                'options' => [],
+                'options' => ['doc_url' => $consentDocUrl],
                 'validation_rules' => 'required|accepted',
             ],
         ];
@@ -94,6 +96,8 @@ class FormSeeder extends Seeder
      */
     private function createCalcForm(): void
     {
+        $consentDocUrl = 'https://site.ru/privacy';
+
         $form = Form::firstOrCreate(
             ['code' => 'calc'],
             [
@@ -189,7 +193,7 @@ class FormSeeder extends Seeder
                 'mask' => '',
                 'is_required' => true,
                 'sort' => 7,
-                'options' => [],
+                'options' => ['doc_url' => $consentDocUrl],
                 'validation_rules' => 'required|accepted',
             ],
         ];
@@ -204,6 +208,8 @@ class FormSeeder extends Seeder
      */
     private function createQuestionForm(): void
     {
+        $consentDocUrl = 'https://site.ru/privacy';
+
         $form = Form::firstOrCreate(
             ['code' => 'question'],
             [
@@ -289,7 +295,7 @@ class FormSeeder extends Seeder
                 'mask' => '',
                 'is_required' => true,
                 'sort' => 6,
-                'options' => [],
+                'options' => ['doc_url' => $consentDocUrl],
                 'validation_rules' => 'required|accepted',
             ],
         ];

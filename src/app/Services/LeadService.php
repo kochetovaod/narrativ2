@@ -20,6 +20,8 @@ class LeadService
         // Извлекаем контактные данные для дедупликации
         $phone = $this->extractPhone($data['payload'] ?? []);
         $email = $this->extractEmail($data['payload'] ?? []);
+        $consentGiven = (bool) ($data['consent_given'] ?? false);
+        $consentAt = $data['consent_at'] ?? ($consentGiven ? now() : null);
 
         // Создаем контактный ключ для дедупликации
         $contactKey = $this->generateContactKey($phone, $email);
@@ -34,9 +36,9 @@ class LeadService
             'source_url' => $data['source_url'] ?? null,
             'page_title' => $data['page_title'] ?? null,
             'utm' => $data['utm'] ?? [],
-            'consent_given' => $data['consent_given'] ?? false,
+            'consent_given' => $consentGiven,
             'consent_doc_url' => $data['consent_doc_url'] ?? null,
-            'consent_at' => $data['consent_at'] ?? null,
+            'consent_at' => $consentAt,
         ]);
 
         // Создаем запись в индексе дедупликации
@@ -275,6 +277,10 @@ class LeadService
             $message .= "\nСогласие на обработку ПДн: Да\n";
         }
 
+        if ($lead->consent_doc_url) {
+            $message .= "Документ согласия: {$lead->consent_doc_url}\n";
+        }
+
         return $message;
     }
 
@@ -309,6 +315,10 @@ class LeadService
 
         if ($lead->source_url) {
             $message .= "\n<b>Источник:</b> {$lead->source_url}\n";
+        }
+
+        if ($lead->consent_doc_url) {
+            $message .= "\n<b>Документ согласия:</b> {$lead->consent_doc_url}\n";
         }
 
         return $message;

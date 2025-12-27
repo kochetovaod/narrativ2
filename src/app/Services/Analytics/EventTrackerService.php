@@ -27,21 +27,37 @@ class EventTrackerService
         }
 
         // Проверяем IP на исключение
-        $ip = $request ? $request->ip() : request()->ip();
-        if ($this->settings->isIpExcluded($ip)) {
+        $ip = $request?->ip();
+        if (! $ip && app()->bound('request')) {
+            $ip = request()->ip();
+        }
+
+        if ($ip && $this->settings->isIpExcluded($ip)) {
             return;
         }
 
         try {
+            $sessionId = null;
+            if ($request && $request->hasSession()) {
+                $sessionId = $request->session()->getId();
+            } elseif (app()->bound('session') && app('session')->isStarted()) {
+                $sessionId = app('session')->getId();
+            }
+
+            $fullUrl = $request?->fullUrl();
+            $referer = $request?->header('referer');
+
             TrackingEvent::create([
                 'event_type' => $eventType,
                 'event_name' => $eventName,
                 'data' => $data,
-                'ip_address' => $ip,
-                'user_agent' => $request ? $request->userAgent() : request()->userAgent(),
-                'session_id' => $request ? $request->session()->getId() : session()->getId(),
-                'page_url' => $request ? $request->fullUrl() : request()->fullUrl(),
-                'referer' => $request ? $request->header('referer') : request()->header('referer'),
+                'source_url' => $request?->input('source_url') ?? $referer,
+                'client_id' => $request?->input('client_id'),
+                'ip' => $ip,
+                'user_agent' => $request?->userAgent(),
+                'session_id' => $sessionId,
+                'page_url' => $fullUrl,
+                'referer' => $referer,
                 'utm' => $this->extractUtmParameters($request),
                 'created_at' => now(),
             ]);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Form;
+use App\Services\Analytics\EventTrackerService;
 use App\Services\LeadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,7 +15,8 @@ use Illuminate\Support\Facades\RateLimiter;
 class FormController extends Controller
 {
     public function __construct(
-        private LeadService $leadService
+        private LeadService $leadService,
+        private EventTrackerService $eventTrackerService
     ) {}
 
     /**
@@ -48,7 +50,9 @@ class FormController extends Controller
             }
 
             // Валидация данных формы
-            $validatedData = $this->validateFormData($request, $form);
+            $formData = $this->validateFormData($request, $form);
+            $validated = $formData['validated'];
+            $payload = $formData['payload'];
 
             // Проверка капчи (если настроена)
             if (! $this->validateCaptcha($request, $form)) {
@@ -59,19 +63,23 @@ class FormController extends Controller
             }
 
             // Создание заявки
+            $consentGiven = (bool) ($validated['consent_given'] ?? false);
+
             $lead = $this->leadService->createLead([
                 'form_code' => $formCode,
-                'payload' => $validatedData,
-                'source_url' => $request->input('source_url'),
-                'page_title' => $request->input('page_title'),
+                'payload' => $payload,
+                'source_url' => $validated['source_url'] ?? null,
+                'page_title' => $validated['page_title'] ?? null,
                 'utm' => $this->extractUtmParams($request),
-                'consent_given' => $request->input('consent_given', false),
-                'consent_doc_url' => $request->input('consent_doc_url'),
-                'consent_at' => $request->input('consent_given') ? now() : null,
+                'consent_given' => $consentGiven,
+                'consent_doc_url' => $validated['consent_doc_url'] ?? null,
+                'consent_at' => $consentGiven ? now() : null,
             ]);
 
             // Отправка уведомлений
             $this->leadService->sendNotifications($lead);
+
+            $this->eventTrackerService->trackFormSubmit($formCode, $payload, $request);
 
             return response()->json([
                 'success' => true,
@@ -178,13 +186,17 @@ class FormController extends Controller
         // Валидация согласия на обработку ПДн
         if ($this->requiresConsent($form)) {
             $rules['consent_given'] = 'required|accepted';
+            $rules['consent_doc_url'] = 'required|url';
             $messages['consent_given.required'] = 'Необходимо согласие на обработку персональных данных.';
             $messages['consent_given.accepted'] = 'Необходимо согласие на обработку персональных данных.';
+            $messages['consent_doc_url.required'] = 'Необходимо указать ссылку на документ с условиями согласия.';
+            $messages['consent_doc_url.url'] = 'Ссылка на документ согласия должна быть корректным URL.';
         }
 
         // Дополнительные поля
         $rules['source_url'] = 'nullable|url';
         $rules['page_title'] = 'nullable|string|max:255';
+        $rules['consent_doc_url'] = $rules['consent_doc_url'] ?? 'nullable|url';
 
         // Проверяем валидацию
         $validatedData = $request->validate($rules, $messages);
@@ -201,7 +213,14 @@ class FormController extends Controller
         $formData['_form_title'] = $form->title;
         $formData['_submitted_at'] = now()->toISOString();
 
-        return $formData;
+        if (! empty($validatedData['consent_doc_url'])) {
+            $formData['_consent_doc_url'] = $validatedData['consent_doc_url'];
+        }
+
+        return [
+            'payload' => $formData,
+            'validated' => $validatedData,
+        ];
     }
 
     /**

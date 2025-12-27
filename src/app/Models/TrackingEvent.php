@@ -13,13 +13,21 @@ class TrackingEvent extends Model
 
     protected $fillable = [
         'event_type',
+        'event_name',
+        'data',
         'source_url',
         'utm',
         'client_id',
+        'ip',
+        'user_agent',
+        'session_id',
+        'page_url',
+        'referer',
         'created_at',
     ];
 
     protected $casts = [
+        'data' => 'array',
         'utm' => 'array',
         'created_at' => 'datetime',
     ];

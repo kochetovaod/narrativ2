@@ -18,7 +18,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->json('notification_email');
             $table->json('notification_telegram');
-            $table->enum('captcha_mode', ['off', 'on', 'adaptive']);
+            $table->enum('captcha_mode', ['none', 'recaptcha', 'hcaptcha'])->nullable();
             $table->timestamps();
 
             $table->index('is_active');
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->foreignId('form_id')->constrained('forms')->cascadeOnDelete();
             $table->string('key');
             $table->string('label');
-            $table->enum('type', ['text', 'textarea', 'phone', 'email', 'select', 'checkbox']);
+            $table->enum('type', ['text', 'textarea', 'phone', 'email', 'select', 'checkbox', 'tel', 'radio', 'date', 'file'])->nullable();
             $table->string('mask')->nullable();
             $table->boolean('is_required');
             $table->integer('sort');
@@ -57,12 +57,12 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->json('payload');
-            $table->text('source_url');
+            $table->text('source_url')->nullable();
             $table->string('page_title')->nullable();
             $table->json('utm')->nullable();
-            $table->boolean('consent_given');
-            $table->string('consent_doc_url');
-            $table->dateTime('consent_at');
+            $table->boolean('consent_given')->nullable();
+            $table->string('consent_doc_url')->nullable();
+            $table->dateTime('consent_at')->nullable();
             $table->text('manager_comment')->nullable();
             $table->timestamps();
 
@@ -85,13 +85,21 @@ return new class extends Migration
 
         Schema::create('tracking_events', function (Blueprint $table) {
             $table->id();
-            $table->enum('event_type', ['form_submit', 'click_tel', 'click_telegram', 'click_whatsapp']);
-            $table->text('source_url');
+            $table->enum('event_type', ['form_submit', 'conversion', 'click', 'page_view', 'form_interaction', 'engagement'])->nullable();
+            $table->string('event_name')->nullable();
+            $table->json('data')->nullable();
+            $table->text('source_url')->nullable();
             $table->json('utm')->nullable();
             $table->string('client_id')->nullable();
+            $table->ipAddress('ip')->nullable();
+            $table->text('user_agent')->nullable();
+            $table->string('session_id')->nullable();
+            $table->text('page_url')->nullable();
+            $table->text('referer')->nullable();
             $table->timestamp('created_at')->useCurrent();
 
             $table->index('event_type');
+            $table->index('event_name');
             $table->index('created_at');
         });
     }

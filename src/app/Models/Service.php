@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Service extends Model
 {
@@ -12,6 +13,7 @@ class Service extends Model
     protected $fillable = [
         'title',
         'slug',
+        'preview_token',
         'content',
         'status',
         'published_at',
@@ -27,6 +29,15 @@ class Service extends Model
         'schema_json' => 'array',
         'show_cases' => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Service $service): void {
+            if ($service->preview_token === null) {
+                $service->preview_token = Str::uuid()->toString();
+            }
+        });
+    }
 
     public function portfolioCases()
     {

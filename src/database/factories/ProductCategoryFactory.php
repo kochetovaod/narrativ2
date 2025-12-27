@@ -20,6 +20,7 @@ class ProductCategoryFactory extends Factory
         return [
             'title' => $title,
             'slug' => Str::slug($title.'-'.$this->faker->unique()->numberBetween(1, 9999)),
+            'preview_token' => Str::uuid()->toString(),
             'intro_text' => $this->faker->optional()->paragraph(),
             'body' => [
                 'blocks' => [

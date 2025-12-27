@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
@@ -13,6 +14,7 @@ class Product extends Model
         'category_id',
         'title',
         'slug',
+        'preview_token',
         'short_text',
         'description',
         'specs',
@@ -28,6 +30,15 @@ class Product extends Model
         'seo' => 'array',
         'schema_json' => 'array',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Product $product): void {
+            if ($product->preview_token === null) {
+                $product->preview_token = Str::uuid()->toString();
+            }
+        });
+    }
 
     public function category()
     {

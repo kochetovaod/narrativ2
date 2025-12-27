@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class PortfolioCase extends Model
 {
@@ -12,6 +13,7 @@ class PortfolioCase extends Model
     protected $fillable = [
         'title',
         'slug',
+        'preview_token',
         'description',
         'client_name',
         'is_nda',
@@ -28,6 +30,15 @@ class PortfolioCase extends Model
         'published_at' => 'datetime',
         'seo' => 'array',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (PortfolioCase $case): void {
+            if ($case->preview_token === null) {
+                $case->preview_token = Str::uuid()->toString();
+            }
+        });
+    }
 
     public function products()
     {

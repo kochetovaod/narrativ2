@@ -21,6 +21,7 @@ class PageFactory extends Factory
             'code' => null,
             'title' => $title,
             'slug' => Str::slug($title.'-'.$this->faker->unique()->numberBetween(1, 9999)),
+            'preview_token' => Str::uuid()->toString(),
             'sections' => [
                 ['type' => 'text', 'value' => $this->faker->paragraph()],
             ],

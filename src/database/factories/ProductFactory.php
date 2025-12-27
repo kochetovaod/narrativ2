@@ -22,6 +22,7 @@ class ProductFactory extends Factory
             'category_id' => ProductCategory::factory(),
             'title' => $title,
             'slug' => Str::slug($title.'-'.$this->faker->unique()->numberBetween(1, 9999)),
+            'preview_token' => Str::uuid()->toString(),
             'short_text' => $this->faker->sentence(),
             'description' => $this->faker->paragraph(),
             'specs' => [

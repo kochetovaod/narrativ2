@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class ProductCategory extends Model
 {
@@ -12,6 +13,7 @@ class ProductCategory extends Model
     protected $fillable = [
         'title',
         'slug',
+        'preview_token',
         'intro_text',
         'body',
         'status',
@@ -26,6 +28,15 @@ class ProductCategory extends Model
         'seo' => 'array',
         'schema_json' => 'array',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (ProductCategory $category): void {
+            if ($category->preview_token === null) {
+                $category->preview_token = Str::uuid()->toString();
+            }
+        });
+    }
 
     public function products()
     {

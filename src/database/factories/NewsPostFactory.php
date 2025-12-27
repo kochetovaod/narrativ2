@@ -20,6 +20,7 @@ class NewsPostFactory extends Factory
         return [
             'title' => $title,
             'slug' => Str::slug($title.'-'.$this->faker->unique()->numberBetween(1, 9999)),
+            'preview_token' => Str::uuid()->toString(),
             'excerpt' => $this->faker->paragraph(),
             'content' => $this->faker->paragraphs(3, true),
             'status' => $this->faker->randomElement(['draft', 'published']),

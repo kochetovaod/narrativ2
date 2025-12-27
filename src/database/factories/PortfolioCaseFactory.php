@@ -20,6 +20,7 @@ class PortfolioCaseFactory extends Factory
         return [
             'title' => $title,
             'slug' => Str::slug($title.'-'.$this->faker->unique()->numberBetween(1, 9999)),
+            'preview_token' => Str::uuid()->toString(),
             'description' => $this->faker->paragraph(),
             'client_name' => $this->faker->company(),
             'is_nda' => $this->faker->boolean(20),

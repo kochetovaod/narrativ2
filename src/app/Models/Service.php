@@ -2,13 +2,20 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicationStatus;
+use App\Models\Concerns\HasSlugRedirects;
+use App\Models\Concerns\HasSeo;
+use App\Models\Concerns\RecordsAdminAudit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class Service extends Model
 {
     use HasFactory;
+    use HasPublicationStatus;
+    use HasSlugRedirects;
+    use HasSeo;
+    use RecordsAdminAudit;
 
     protected $fillable = [
         'title',
@@ -30,15 +37,6 @@ class Service extends Model
         'show_cases' => 'boolean',
     ];
 
-    protected static function booted(): void
-    {
-        static::creating(function (Service $service): void {
-            if ($service->preview_token === null) {
-                $service->preview_token = Str::uuid()->toString();
-            }
-        });
-    }
-
     public function portfolioCases()
     {
         return $this->belongsToMany(PortfolioCase::class, 'portfolio_case_service', 'service_id', 'case_id');
@@ -47,5 +45,12 @@ class Service extends Model
     public function mediaLinks()
     {
         return $this->morphMany(MediaLink::class, 'entity');
+    }
+
+    protected function publicPathFromAttributes(array $attributes): string
+    {
+        $slug = $attributes['slug'] ?? $this->slug ?? '';
+
+        return '/uslugi/'.$slug;
     }
 }

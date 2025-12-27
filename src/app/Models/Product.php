@@ -2,13 +2,20 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicationStatus;
+use App\Models\Concerns\HasSlugRedirects;
+use App\Models\Concerns\HasSeo;
+use App\Models\Concerns\RecordsAdminAudit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class Product extends Model
 {
     use HasFactory;
+    use HasPublicationStatus;
+    use HasSlugRedirects;
+    use HasSeo;
+    use RecordsAdminAudit;
 
     protected $fillable = [
         'category_id',
@@ -31,15 +38,6 @@ class Product extends Model
         'schema_json' => 'array',
     ];
 
-    protected static function booted(): void
-    {
-        static::creating(function (Product $product): void {
-            if ($product->preview_token === null) {
-                $product->preview_token = Str::uuid()->toString();
-            }
-        });
-    }
-
     public function category()
     {
         return $this->belongsTo(ProductCategory::class, 'category_id');
@@ -53,5 +51,27 @@ class Product extends Model
     public function mediaLinks()
     {
         return $this->morphMany(MediaLink::class, 'entity');
+    }
+
+    protected function publicPathFromAttributes(array $attributes): string
+    {
+        $slug = $attributes['slug'] ?? $this->slug ?? '';
+        $categoryId = $attributes['category_id'] ?? $this->category_id;
+
+        return '/produkciya/'.$this->resolveCategorySlug((int) $categoryId).'/'.$slug;
+    }
+
+    protected function pathDependenciesChanged(): bool
+    {
+        return $this->isDirty('category_id');
+    }
+
+    private function resolveCategorySlug(int $categoryId): string
+    {
+        if ($this->relationLoaded('category') && $this->category !== null && $this->category->id === $categoryId) {
+            return $this->category->slug;
+        }
+
+        return ProductCategory::query()->find($categoryId)?->slug ?? (string) $categoryId;
     }
 }

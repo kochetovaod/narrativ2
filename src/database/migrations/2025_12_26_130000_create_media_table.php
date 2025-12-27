@@ -11,25 +11,31 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('media', function (Blueprint $table) {
+        Schema::create('media_files', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->nullable()->unique();
-            $table->nullableMorphs('model');
-            $table->string('collection_name');
-            $table->string('name');
-            $table->string('file_name');
-            $table->string('mime_type')->nullable();
-            $table->string('disk');
-            $table->string('conversions_disk');
-            $table->unsignedBigInteger('size');
-            $table->json('manipulations');
-            $table->json('custom_properties');
-            $table->json('generated_conversions');
-            $table->json('responsive_images');
-            $table->unsignedInteger('order_column')->nullable();
-            $table->timestamps();
+            $table->enum('disk', ['local']);
+            $table->string('path');
+            $table->string('original_name');
+            $table->string('mime');
+            $table->integer('size');
+            $table->integer('width')->nullable();
+            $table->integer('height')->nullable();
+            $table->timestamp('created_at')->useCurrent();
+        });
 
-            $table->index(['model_type', 'model_id']);
+        Schema::create('media_links', function (Blueprint $table) {
+            $table->id();
+            $table->string('entity_type');
+            $table->unsignedBigInteger('entity_id');
+            $table->foreignId('media_id')->constrained('media_files')->cascadeOnDelete();
+            $table->string('role');
+            $table->integer('sort')->default(0);
+            $table->text('alt')->nullable();
+            $table->timestamp('created_at')->useCurrent();
+
+            $table->index(['entity_type', 'entity_id']);
+            $table->index('media_id');
+            $table->index('sort');
         });
     }
 
@@ -38,6 +44,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('media');
+        Schema::dropIfExists('media_links');
+        Schema::dropIfExists('media_files');
     }
 };

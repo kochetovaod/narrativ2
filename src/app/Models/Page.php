@@ -5,39 +5,25 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends Model
+class Page extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'category_id',
+        'code',
         'title',
         'slug',
-        'short_text',
-        'description',
-        'specs',
+        'sections',
         'status',
         'published_at',
         'seo',
-        'schema_json',
     ];
 
     protected $casts = [
-        'specs' => 'array',
+        'sections' => 'array',
         'published_at' => 'datetime',
         'seo' => 'array',
-        'schema_json' => 'array',
     ];
-
-    public function category()
-    {
-        return $this->belongsTo(ProductCategory::class, 'category_id');
-    }
-
-    public function portfolioCases()
-    {
-        return $this->belongsToMany(PortfolioCase::class, 'portfolio_case_product', 'product_id', 'case_id');
-    }
 
     public function mediaLinks()
     {

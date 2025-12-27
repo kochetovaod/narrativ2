@@ -11,39 +11,45 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_categories', function (Blueprint $table) {
+        Schema::create('news_posts', function (Blueprint $table) {
             $table->id();
             $table->string('title');
             $table->string('slug')->unique();
-            $table->text('intro_text')->nullable();
-            $table->json('body')->nullable();
+            $table->text('excerpt')->nullable();
+            $table->longText('content')->nullable();
             $table->enum('status', ['draft', 'published'])->default('draft');
             $table->timestamp('published_at')->nullable();
             $table->json('seo')->nullable();
-            $table->json('schema_json')->nullable();
             $table->timestamps();
 
             $table->index('status');
             $table->index('published_at');
         });
 
-        Schema::create('products', function (Blueprint $table) {
+        Schema::create('pages', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->constrained('product_categories')->cascadeOnDelete();
+            $table->string('code')->nullable()->unique();
             $table->string('title');
-            $table->string('slug');
-            $table->text('short_text')->nullable();
-            $table->longText('description')->nullable();
-            $table->json('specs');
+            $table->string('slug')->unique();
+            $table->json('sections');
             $table->enum('status', ['draft', 'published'])->default('draft');
             $table->timestamp('published_at')->nullable();
             $table->json('seo')->nullable();
-            $table->json('schema_json')->nullable();
             $table->timestamps();
 
-            $table->unique(['category_id', 'slug']);
             $table->index('status');
             $table->index('published_at');
+        });
+
+        Schema::create('global_blocks', function (Blueprint $table) {
+            $table->id();
+            $table->string('code')->unique();
+            $table->string('title');
+            $table->json('content');
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+
+            $table->index('is_active');
         });
     }
 
@@ -52,7 +58,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('products');
-        Schema::dropIfExists('product_categories');
+        Schema::dropIfExists('global_blocks');
+        Schema::dropIfExists('pages');
+        Schema::dropIfExists('news_posts');
     }
 };

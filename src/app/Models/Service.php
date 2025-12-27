@@ -2,58 +2,39 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasMediaCollections;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Laravel\Scout\Searchable;
-use Spatie\MediaLibrary\HasMedia;
 
-class Service extends Model implements HasMedia
+class Service extends Model
 {
     use HasFactory;
-    use HasMediaCollections;
-    use Searchable;
 
     protected $fillable = [
         'title',
+        'slug',
         'content',
         'status',
         'published_at',
+        'seo',
+        'schema_json',
+        'show_cases',
     ];
 
     protected $casts = [
+        'content' => 'array',
         'published_at' => 'datetime',
+        'seo' => 'array',
+        'schema_json' => 'array',
+        'show_cases' => 'boolean',
     ];
 
-    public function searchableAs(): string
+    public function portfolioCases()
     {
-        return 'services';
+        return $this->belongsToMany(PortfolioCase::class, 'portfolio_case_service', 'service_id', 'case_id');
     }
 
-    public function toSearchableArray(): array
+    public function mediaLinks()
     {
-        return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'content' => $this->content,
-            'status' => $this->status,
-            'published_at' => optional($this->published_at)?->toIso8601String(),
-        ];
-    }
-
-    public function registerMediaCollections(): void
-    {
-        $this->addMediaCollection('illustration')
-            ->singleFile()
-            ->acceptsMimeTypes($this->imageMimeTypes())
-            ->withResponsiveImages();
-
-        $this->addMediaCollection('attachments')
-            ->acceptsMimeTypes($this->documentMimeTypes());
-    }
-
-    protected function imageCollections(): array
-    {
-        return ['illustration'];
+        return $this->morphMany(MediaLink::class, 'entity');
     }
 }

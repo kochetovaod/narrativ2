@@ -5,17 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends Model
+class ProductCategory extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'category_id',
         'title',
         'slug',
-        'short_text',
-        'description',
-        'specs',
+        'intro_text',
+        'body',
         'status',
         'published_at',
         'seo',
@@ -23,20 +21,15 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'specs' => 'array',
+        'body' => 'array',
         'published_at' => 'datetime',
         'seo' => 'array',
         'schema_json' => 'array',
     ];
 
-    public function category()
+    public function products()
     {
-        return $this->belongsTo(ProductCategory::class, 'category_id');
-    }
-
-    public function portfolioCases()
-    {
-        return $this->belongsToMany(PortfolioCase::class, 'portfolio_case_product', 'product_id', 'case_id');
+        return $this->hasMany(Product::class, 'category_id');
     }
 
     public function mediaLinks()

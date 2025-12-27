@@ -5,39 +5,24 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends Model
+class NewsPost extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'category_id',
         'title',
         'slug',
-        'short_text',
-        'description',
-        'specs',
+        'excerpt',
+        'content',
         'status',
         'published_at',
         'seo',
-        'schema_json',
     ];
 
     protected $casts = [
-        'specs' => 'array',
         'published_at' => 'datetime',
         'seo' => 'array',
-        'schema_json' => 'array',
     ];
-
-    public function category()
-    {
-        return $this->belongsTo(ProductCategory::class, 'category_id');
-    }
-
-    public function portfolioCases()
-    {
-        return $this->belongsToMany(PortfolioCase::class, 'portfolio_case_product', 'product_id', 'case_id');
-    }
 
     public function mediaLinks()
     {

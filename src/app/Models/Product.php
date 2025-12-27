@@ -8,6 +8,7 @@ use App\Models\Concerns\HasSlugRedirects;
 use App\Models\Concerns\RecordsAdminAudit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Searchable;
 
 class Product extends Model
 {
@@ -16,6 +17,7 @@ class Product extends Model
     use HasSeo;
     use HasSlugRedirects;
     use RecordsAdminAudit;
+    use Searchable;
 
     protected $fillable = [
         'category_id',
@@ -51,6 +53,32 @@ class Product extends Model
     public function mediaLinks()
     {
         return $this->morphMany(MediaLink::class, 'entity');
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'slug' => $this->slug,
+            'short_text' => strip_tags((string) $this->short_text),
+            'description' => strip_tags((string) $this->description),
+            'category_id' => $this->category_id,
+            'category_slug' => $this->category?->slug,
+            'status' => $this->status,
+            'published_at' => optional($this->published_at)?->toAtomString(),
+            'created_at' => optional($this->created_at)?->toAtomString(),
+        ];
+    }
+
+    public function shouldBeSearchable(): bool
+    {
+        return $this->isPublished();
+    }
+
+    protected function makeAllSearchableUsing($query)
+    {
+        return $query->with('category:id,slug');
     }
 
     protected function publicPathFromAttributes(array $attributes): string

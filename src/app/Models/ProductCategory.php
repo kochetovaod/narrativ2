@@ -50,6 +50,6 @@ class ProductCategory extends Model
     {
         $slug = $attributes['slug'] ?? $this->slug ?? '';
 
-        return '/produkciya/'.$slug;
+        return '/products/'.$slug;
     }
 }

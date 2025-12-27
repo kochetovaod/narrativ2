@@ -26,9 +26,39 @@ class PublicController extends Controller
      */
     public function home(): View
     {
+        $categories = ProductCategory::query()
+            ->published()
+            ->orderBy('title')
+            ->limit(6)
+            ->get();
+
+        $services = Service::query()
+            ->published()
+            ->orderBy('title')
+            ->limit(6)
+            ->get();
+
+        $portfolioCases = PortfolioCase::query()
+            ->published()
+            ->orderByDesc('date')
+            ->limit(3)
+            ->get();
+
+        $news = NewsPost::query()
+            ->published()
+            ->orderByDesc('published_at')
+            ->limit(3)
+            ->get();
+
         $breadcrumbs = $this->breadcrumbService->home();
 
-        return view('public.home', compact('breadcrumbs'));
+        return view('public.home', compact(
+            'breadcrumbs',
+            'categories',
+            'services',
+            'portfolioCases',
+            'news'
+        ));
     }
 
     /**
@@ -36,9 +66,10 @@ class PublicController extends Controller
      */
     public function products(): View
     {
-        $categories = ProductCategory::where('status', 'published')
-            ->with('products')
-            ->orderBy('sort')
+        $categories = ProductCategory::query()
+            ->published()
+            ->with(['products' => fn ($query) => $query->published()->orderBy('title')])
+            ->orderBy('title')
             ->get();
 
         $breadcrumbs = $this->breadcrumbService->products();
@@ -51,14 +82,17 @@ class PublicController extends Controller
      */
     public function productsByCategory(string $categorySlug): View
     {
-        $category = ProductCategory::where('slug', $categorySlug)
-            ->where('status', 'published')
+        $category = ProductCategory::query()
+            ->published()
+            ->where('slug', $categorySlug)
             ->firstOrFail();
 
-        $products = Product::where('category_id', $category->id)
-            ->where('status', 'published')
-            ->orderBy('sort')
-            ->get();
+        $products = Product::query()
+            ->published()
+            ->where('category_id', $category->id)
+            ->orderBy('title')
+            ->paginate(12)
+            ->withQueryString();
 
         $breadcrumbs = $this->breadcrumbService->productCategory($category);
 
@@ -70,18 +104,23 @@ class PublicController extends Controller
      */
     public function product(string $categorySlug, string $productSlug): View
     {
-        $category = ProductCategory::where('slug', $categorySlug)
-            ->where('status', 'published')
+        $category = ProductCategory::query()
+            ->published()
+            ->where('slug', $categorySlug)
             ->firstOrFail();
 
-        $product = Product::where('slug', $productSlug)
+        $product = Product::query()
+            ->with('category')
+            ->published()
+            ->where('slug', $productSlug)
             ->where('category_id', $category->id)
-            ->where('status', 'published')
             ->firstOrFail();
 
-        $relatedProducts = Product::where('category_id', $category->id)
+        $relatedProducts = Product::query()
+            ->published()
+            ->where('category_id', $category->id)
             ->where('id', '!=', $product->id)
-            ->where('status', 'published')
+            ->orderBy('title')
             ->limit(4)
             ->get();
 
@@ -95,8 +134,9 @@ class PublicController extends Controller
      */
     public function services(): View
     {
-        $services = Service::where('status', 'published')
-            ->orderBy('sort')
+        $services = Service::query()
+            ->published()
+            ->orderBy('title')
             ->get();
 
         $breadcrumbs = $this->breadcrumbService->services();
@@ -109,12 +149,16 @@ class PublicController extends Controller
      */
     public function service(string $serviceSlug): View
     {
-        $service = Service::where('slug', $serviceSlug)
-            ->where('status', 'published')
+        $service = Service::query()
+            ->with('portfolioCases')
+            ->published()
+            ->where('slug', $serviceSlug)
             ->firstOrFail();
 
-        $relatedServices = Service::where('id', '!=', $service->id)
-            ->where('status', 'published')
+        $relatedServices = Service::query()
+            ->published()
+            ->where('id', '!=', $service->id)
+            ->orderBy('title')
             ->limit(4)
             ->get();
 
@@ -126,15 +170,49 @@ class PublicController extends Controller
     /**
      * Портфолио
      */
-    public function portfolio(): View
+    public function portfolio(Request $request): View
     {
-        $cases = PortfolioCase::where('status', 'published')
-            ->orderBy('sort')
-            ->get();
+        $productSlug = $request->get('product');
+        $serviceSlug = $request->get('service');
+
+        $query = PortfolioCase::query()
+            ->with(['products:id,title,slug', 'services:id,title,slug'])
+            ->published();
+
+        if (! empty($productSlug)) {
+            $query->whereHas('products', fn ($q) => $q->where('slug', $productSlug));
+        }
+
+        if (! empty($serviceSlug)) {
+            $query->whereHas('services', fn ($q) => $q->where('slug', $serviceSlug));
+        }
+
+        $cases = $query
+            ->orderByDesc('date')
+            ->orderBy('title')
+            ->paginate(9)
+            ->withQueryString();
+
+        $products = Product::query()
+            ->published()
+            ->orderBy('title')
+            ->get(['id', 'title', 'slug']);
+
+        $services = Service::query()
+            ->published()
+            ->orderBy('title')
+            ->get(['id', 'title', 'slug']);
 
         $breadcrumbs = $this->breadcrumbService->portfolio();
 
-        return view('public.portfolio.index', compact('cases', 'breadcrumbs'));
+        return view('public.portfolio.index', [
+            'cases' => $cases,
+            'breadcrumbs' => $breadcrumbs,
+            'products' => $products,
+            'services' => $services,
+            'selectedProduct' => $productSlug,
+            'selectedService' => $serviceSlug,
+        ]);
     }
 
     /**
@@ -142,12 +220,21 @@ class PublicController extends Controller
      */
     public function portfolioCase(string $caseSlug): View
     {
-        $case = PortfolioCase::where('slug', $caseSlug)
-            ->where('status', 'published')
+        $case = PortfolioCase::query()
+            ->with([
+                'products' => fn ($query) => $query
+                    ->select('products.id', 'products.title', 'products.slug', 'products.category_id')
+                    ->with('category:id,slug'),
+                'services:id,title,slug',
+            ])
+            ->published()
+            ->where('slug', $caseSlug)
             ->firstOrFail();
 
-        $relatedCases = PortfolioCase::where('id', '!=', $case->id)
-            ->where('status', 'published')
+        $relatedCases = PortfolioCase::query()
+            ->published()
+            ->where('id', '!=', $case->id)
+            ->orderByDesc('date')
             ->limit(4)
             ->get();
 
@@ -161,9 +248,11 @@ class PublicController extends Controller
      */
     public function news(): View
     {
-        $news = NewsPost::where('status', 'published')
-            ->orderBy('published_at', 'desc')
-            ->get();
+        $news = NewsPost::query()
+            ->published()
+            ->orderByDesc('published_at')
+            ->paginate(9)
+            ->withQueryString();
 
         $breadcrumbs = $this->breadcrumbService->news();
 
@@ -175,12 +264,15 @@ class PublicController extends Controller
      */
     public function newsPost(string $newsSlug): View
     {
-        $news = NewsPost::where('slug', $newsSlug)
-            ->where('status', 'published')
+        $news = NewsPost::query()
+            ->published()
+            ->where('slug', $newsSlug)
             ->firstOrFail();
 
-        $relatedNews = NewsPost::where('id', '!=', $news->id)
-            ->where('status', 'published')
+        $relatedNews = NewsPost::query()
+            ->published()
+            ->where('id', '!=', $news->id)
+            ->orderByDesc('published_at')
             ->limit(4)
             ->get();
 
@@ -194,8 +286,9 @@ class PublicController extends Controller
      */
     public function page(string $pageSlug): View
     {
-        $page = Page::where('slug', $pageSlug)
-            ->where('status', 'published')
+        $page = Page::query()
+            ->published()
+            ->where('slug', $pageSlug)
             ->firstOrFail();
 
         $breadcrumbs = $this->breadcrumbService->page($page);
@@ -208,45 +301,69 @@ class PublicController extends Controller
      */
     public function search(Request $request): View
     {
-        $query = $request->get('q');
+        $query = trim((string) $request->get('q'));
         $results = collect();
 
-        if ($query && strlen(trim($query)) > 0) {
+        if ($query !== '') {
             // Поиск по товарам
-            $products = Product::where('status', 'published')
+            $products = Product::query()
+                ->with('category:id,slug')
+                ->published()
                 ->where(function ($q) use ($query) {
                     $q->where('title', 'like', "%{$query}%")
                         ->orWhere('description', 'like', "%{$query}%");
                 })
+                ->orderBy('title')
+                ->limit(15)
                 ->get();
 
             // Поиск по услугам
-            $services = Service::where('status', 'published')
-                ->where(function ($q) use ($query) {
-                    $q->where('title', 'like', "%{$query}%")
-                        ->orWhere('description', 'like', "%{$query}%");
-                })
-                ->get();
-
-            // Поиск по новостям
-            $news = NewsPost::where('status', 'published')
+            $services = Service::query()
+                ->published()
                 ->where(function ($q) use ($query) {
                     $q->where('title', 'like', "%{$query}%")
                         ->orWhere('content', 'like', "%{$query}%");
                 })
+                ->orderBy('title')
+                ->limit(15)
+                ->get();
+
+            // Поиск по новостям
+            $news = NewsPost::query()
+                ->published()
+                ->where(function ($q) use ($query) {
+                    $q->where('title', 'like', "%{$query}%")
+                        ->orWhere('content', 'like', "%{$query}%");
+                })
+                ->orderByDesc('published_at')
+                ->limit(15)
+                ->get();
+
+            $portfolio = PortfolioCase::query()
+                ->published()
+                ->where(function ($q) use ($query) {
+                    $q->where('title', 'like', "%{$query}%")
+                        ->orWhere('description', 'like', "%{$query}%");
+                })
+                ->orderByDesc('date')
+                ->limit(15)
                 ->get();
 
             // Поиск по страницам
-            $pages = Page::where('status', 'published')
+            $pages = Page::query()
+                ->published()
                 ->where(function ($q) use ($query) {
                     $q->where('title', 'like', "%{$query}%")
                         ->orWhere('code', 'like', "%{$query}%");
                 })
+                ->orderBy('title')
+                ->limit(15)
                 ->get();
 
             $results = collect([
                 'products' => $products,
                 'services' => $services,
+                'portfolio' => $portfolio,
                 'news' => $news,
                 'pages' => $pages,
             ]);
@@ -262,27 +379,37 @@ class PublicController extends Controller
      */
     public function searchSuggestions(Request $request): JsonResponse
     {
-        $query = $request->get('q');
+        $query = trim((string) $request->get('q'));
         $suggestions = collect();
 
-        if ($query && strlen(trim($query)) >= 2) {
+        if (strlen($query) >= 2) {
             // Ищем в товарах
-            $products = Product::where('status', 'published')
+            $products = Product::query()
+                ->with('category:id,slug')
+                ->published()
                 ->where('title', 'like', "%{$query}%")
-                ->select('title', 'slug')
+                ->select('id', 'title', 'slug', 'category_id')
                 ->limit(3)
                 ->get();
 
             foreach ($products as $product) {
+                if ($product->category === null) {
+                    continue;
+                }
+
                 $suggestions->push([
                     'title' => $product->title,
-                    'url' => '/products/'.$product->slug,
+                    'url' => route('products.show', [
+                        'categorySlug' => $product->category->slug,
+                        'productSlug' => $product->slug,
+                    ]),
                     'type' => 'product',
                 ]);
             }
 
             // Ищем в услугах
-            $services = Service::where('status', 'published')
+            $services = Service::query()
+                ->published()
                 ->where('title', 'like', "%{$query}%")
                 ->select('title', 'slug')
                 ->limit(3)
@@ -291,8 +418,24 @@ class PublicController extends Controller
             foreach ($services as $service) {
                 $suggestions->push([
                     'title' => $service->title,
-                    'url' => '/services/'.$service->slug,
+                    'url' => route('services.show', ['serviceSlug' => $service->slug]),
                     'type' => 'service',
+                ]);
+            }
+
+            $news = NewsPost::query()
+                ->published()
+                ->where('title', 'like', "%{$query}%")
+                ->select('title', 'slug')
+                ->orderByDesc('published_at')
+                ->limit(3)
+                ->get();
+
+            foreach ($news as $post) {
+                $suggestions->push([
+                    'title' => $post->title,
+                    'url' => route('news.show', ['newsSlug' => $post->slug]),
+                    'type' => 'news',
                 ]);
             }
         }

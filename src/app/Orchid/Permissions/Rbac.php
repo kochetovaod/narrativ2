@@ -7,19 +7,31 @@ use Illuminate\Support\Collection;
 class Rbac
 {
     public const ROLE_SUPER_ADMIN = 'super_admin';
+
     public const ROLE_ADMIN = 'admin';
+
     public const ROLE_CONTENT_MANAGER = 'content_manager';
 
     public const PERMISSION_ACCESS = 'platform.index';
+
     public const PERMISSION_CONTENT = 'platform.content';
+
     public const PERMISSION_FORMS = 'platform.forms';
+
     public const PERMISSION_MENU = 'platform.menu';
+
     public const PERMISSION_PAGE_BUILDER = 'platform.page_builder';
+
     public const PERMISSION_SEO = 'platform.seo';
+
     public const PERMISSION_IMPORTS = 'platform.imports';
+
     public const PERMISSION_AUDIT = 'platform.audit';
+
     public const PERMISSION_SYSTEM_SETTINGS = 'platform.systems.settings';
+
     public const PERMISSION_ROLES = 'platform.systems.roles';
+
     public const PERMISSION_USERS = 'platform.systems.users';
 
     /**

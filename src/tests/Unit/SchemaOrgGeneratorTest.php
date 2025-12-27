@@ -22,7 +22,7 @@ class SchemaOrgGeneratorTest extends TestCase
             'schema_json' => ['color' => 'red'],
         ]);
 
-        $schema = (new SchemaOrgGenerator())->forEntity($product);
+        $schema = (new SchemaOrgGenerator)->forEntity($product);
 
         $this->assertSame('Product', $schema['@type']);
         $this->assertSame('Товар', $schema['name']);
@@ -38,7 +38,7 @@ class SchemaOrgGeneratorTest extends TestCase
             'content' => ['intro' => 'Описание услуги'],
         ]);
 
-        $schema = (new SchemaOrgGenerator())->forEntity($service);
+        $schema = (new SchemaOrgGenerator)->forEntity($service);
 
         $this->assertSame('Service', $schema['@type']);
         $this->assertSame('Услуга', $schema['name']);

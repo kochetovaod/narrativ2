@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPublicationStatus;
-use App\Models\Concerns\HasSlugRedirects;
 use App\Models\Concerns\HasSeo;
+use App\Models\Concerns\HasSlugRedirects;
 use App\Models\Concerns\RecordsAdminAudit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,8 +13,8 @@ class NewsPost extends Model
 {
     use HasFactory;
     use HasPublicationStatus;
-    use HasSlugRedirects;
     use HasSeo;
+    use HasSlugRedirects;
     use RecordsAdminAudit;
 
     protected $fillable = [

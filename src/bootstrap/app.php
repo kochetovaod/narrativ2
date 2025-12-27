@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Middleware\EnsurePlatformUserIsActive;
 use App\Orchid\PlatformProvider;
 use App\Providers\AppServiceProvider;
-use App\Http\Middleware\EnsurePlatformUserIsActive;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;

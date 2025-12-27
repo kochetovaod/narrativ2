@@ -30,7 +30,7 @@ class SeoMetaResolverTest extends TestCase
             'seo' => ['description' => 'Custom desc'],
         ]);
 
-        $meta = (new SeoMetaResolver())->resolve($product, ['brand' => 'Acme']);
+        $meta = (new SeoMetaResolver)->resolve($product, ['brand' => 'Acme']);
 
         $this->assertSame('Sample | Acme', $meta['title']);
         $this->assertSame('Custom desc', $meta['description']);

@@ -40,6 +40,42 @@ class PlatformProvider extends OrchidServiceProvider
                 ->icon('lock')
                 ->route('platform.systems.roles')
                 ->permission(Rbac::PERMISSION_ROLES),
+
+            Menu::make(__('Категории продукции'))
+                ->icon('folder')
+                ->route('platform.systems.product_categories')
+                ->permission(Rbac::PERMISSION_PRODUCT_CATEGORIES)
+                ->title(__('Контент')),
+
+            Menu::make(__('Товары'))
+                ->icon('basket')
+                ->route('platform.systems.products')
+                ->permission(Rbac::PERMISSION_PRODUCTS),
+
+            Menu::make(__('Услуги'))
+                ->icon('settings')
+                ->route('platform.systems.services')
+                ->permission(Rbac::PERMISSION_SERVICES),
+
+            Menu::make(__('Портфолио'))
+                ->icon('photo')
+                ->route('platform.systems.portfolio_cases')
+                ->permission(Rbac::PERMISSION_PORTFOLIO_CASES),
+
+            Menu::make(__('Новости'))
+                ->icon('news')
+                ->route('platform.systems.news_posts')
+                ->permission(Rbac::PERMISSION_NEWS_POSTS),
+
+            Menu::make(__('Страницы'))
+                ->icon('document')
+                ->route('platform.systems.pages')
+                ->permission(Rbac::PERMISSION_PAGES),
+
+            Menu::make(__('Глобальные блоки'))
+                ->icon('blocks')
+                ->route('platform.systems.global-blocks')
+                ->permission(Rbac::PERMISSION_PAGE_BUILDER),
         ];
     }
 

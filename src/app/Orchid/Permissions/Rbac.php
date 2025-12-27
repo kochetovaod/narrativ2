@@ -34,6 +34,18 @@ class Rbac
 
     public const PERMISSION_USERS = 'platform.systems.users';
 
+    public const PERMISSION_PRODUCT_CATEGORIES = 'platform.systems.product_categories';
+
+    public const PERMISSION_PRODUCTS = 'platform.systems.products';
+
+    public const PERMISSION_SERVICES = 'platform.systems.services';
+
+    public const PERMISSION_PORTFOLIO_CASES = 'platform.systems.portfolio_cases';
+
+    public const PERMISSION_NEWS_POSTS = 'platform.systems.news_posts';
+
+    public const PERMISSION_PAGES = 'platform.systems.pages';
+
     /**
      * Доступные группы прав и их ключи.
      *
@@ -49,6 +61,12 @@ class Rbac
                 self::PERMISSION_CONTENT => 'Контент и медиа',
                 self::PERMISSION_PAGE_BUILDER => 'Page Builder',
                 self::PERMISSION_MENU => 'Меню и навигация',
+                self::PERMISSION_PRODUCT_CATEGORIES => 'Категории продукции',
+                self::PERMISSION_PRODUCTS => 'Товары',
+                self::PERMISSION_SERVICES => 'Услуги',
+                self::PERMISSION_PORTFOLIO_CASES => 'Портфолио',
+                self::PERMISSION_NEWS_POSTS => 'Новости',
+                self::PERMISSION_PAGES => 'Страницы',
             ],
             'Заявки и коммуникации' => [
                 self::PERMISSION_FORMS => 'Формы и заявки',
@@ -93,6 +111,12 @@ class Rbac
                     self::PERMISSION_SEO,
                     self::PERMISSION_IMPORTS,
                     self::PERMISSION_AUDIT,
+                    self::PERMISSION_PRODUCT_CATEGORIES,
+                    self::PERMISSION_PRODUCTS,
+                    self::PERMISSION_SERVICES,
+                    self::PERMISSION_PORTFOLIO_CASES,
+                    self::PERMISSION_NEWS_POSTS,
+                    self::PERMISSION_PAGES,
                 ], true),
             ],
             self::ROLE_CONTENT_MANAGER => [
@@ -102,6 +126,12 @@ class Rbac
                     self::PERMISSION_CONTENT,
                     self::PERMISSION_PAGE_BUILDER,
                     self::PERMISSION_MENU,
+                    self::PERMISSION_PRODUCT_CATEGORIES,
+                    self::PERMISSION_PRODUCTS,
+                    self::PERMISSION_SERVICES,
+                    self::PERMISSION_PORTFOLIO_CASES,
+                    self::PERMISSION_NEWS_POSTS,
+                    self::PERMISSION_PAGES,
                 ], true),
             ],
         ];

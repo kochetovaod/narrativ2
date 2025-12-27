@@ -192,7 +192,7 @@ class ProductEditScreen extends Screen
             'product.category_id' => ['required', 'exists:product_categories,id'],
             'product.short_text' => ['nullable', 'string'],
             'product.description.content' => ['nullable', 'string'],
-            'product.specs.data' => ['nullable', 'string'],
+            'product.specs.data' => ['nullable', 'string', 'json'],
             'product.status' => ['required', 'in:draft,published'],
             'product.portfolio_cases' => ['array'],
             'product.portfolio_cases.*' => ['exists:portfolio_cases,id'],
@@ -216,12 +216,11 @@ class ProductEditScreen extends Screen
         }
 
         // Парсинг характеристик из JSON
-        $specs = null;
-        if (! empty($specsData['data'])) {
-            $specs = json_decode($specsData['data'], true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                Alert::warning(__('Некорректный формат характеристик. Ожидается валидный JSON.'));
-            }
+        $specsInput = $specsData['data'] ?? '';
+        $specs = [];
+        if ($specsInput !== '') {
+            $decodedSpecs = json_decode($specsInput, true);
+            $specs = is_array($decodedSpecs) ? $decodedSpecs : [];
         }
 
         $product->fill([

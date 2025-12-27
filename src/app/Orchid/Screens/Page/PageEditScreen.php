@@ -205,7 +205,16 @@ class PageEditScreen extends Screen
         if (! empty($sections)) {
             // Пересортировка по order
             usort($sections, fn ($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
-            $pageData['sections'] = $sections;
+
+            // Переиндексируем секции для обеспечения последовательности
+            $reindexedSections = [];
+            $order = 0;
+            foreach ($sections as $section) {
+                $section['order'] = $order++;
+                $reindexedSections[] = $section;
+            }
+
+            $pageData['sections'] = $reindexedSections;
         } else {
             $pageData['sections'] = [];
         }
@@ -236,9 +245,164 @@ class PageEditScreen extends Screen
             return;
         }
 
-        // Здесь будет логика добавления секции
-        // Пока заглушка
-        Alert::info(__("Добавление секции типа: {$sectionType}"));
+        // Получаем текущие секции
+        $sections = $this->page->sections ?? [];
+
+        // Создаем новую секцию
+        $newSection = [
+            'id' => 'section_'.time().'_'.rand(1000, 9999),
+            'type' => $sectionType,
+            'order' => count($sections),
+            'settings' => $this->getDefaultSectionSettings($sectionType),
+        ];
+
+        $sections[] = $newSection;
+        $this->page->sections = $sections;
+        $this->page->save();
+
+        Alert::success(__("Секция '{$this->getSectionTypeLabel($sectionType)}' добавлена"));
+
+        $this->redirect(route('platform.systems.pages.edit', $this->page));
+    }
+
+    public function removeSection(Request $request): void
+    {
+        $sectionId = $request->input('section_id');
+
+        if (! $sectionId) {
+            Alert::error(__('ID секции не указан'));
+
+            return;
+        }
+
+        $sections = $this->page->sections ?? [];
+        $filteredSections = array_filter($sections, fn ($section) => $section['id'] !== $sectionId);
+
+        // Пересортировка
+        $reorderedSections = [];
+        $order = 0;
+        foreach ($filteredSections as $section) {
+            $section['order'] = $order++;
+            $reorderedSections[] = $section;
+        }
+
+        $this->page->sections = $reorderedSections;
+        $this->page->save();
+
+        Alert::success(__('Секция удалена'));
+
+        $this->redirect(route('platform.systems.pages.edit', $this->page));
+    }
+
+    public function reorderSections(Request $request): void
+    {
+        $sectionOrders = $request->input('section_orders', []);
+
+        if (empty($sectionOrders)) {
+            Alert::error(__('Порядок секций не указан'));
+
+            return;
+        }
+
+        $sections = $this->page->sections ?? [];
+        $reorderedSections = [];
+
+        // Пересортировываем секции согласно новому порядку
+        foreach ($sectionOrders as $orderData) {
+            $sectionId = $orderData['id'] ?? null;
+            $newOrder = $orderData['order'] ?? 0;
+
+            foreach ($sections as $section) {
+                if ($section['id'] === $sectionId) {
+                    $section['order'] = $newOrder;
+                    $reorderedSections[] = $section;
+                    break;
+                }
+            }
+        }
+
+        // Сортируем по order
+        usort($reorderedSections, fn ($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
+
+        $this->page->sections = $reorderedSections;
+        $this->page->save();
+
+        Alert::success(__('Порядок секций обновлен'));
+
+        $this->redirect(route('platform.systems.pages.edit', $this->page));
+    }
+
+    private function getDefaultSectionSettings(string $sectionType): array
+    {
+        return match ($sectionType) {
+            'hero' => [
+                'title' => '',
+                'subtitle' => '',
+                'background_image' => '',
+                'cta_buttons' => [],
+            ],
+            'text' => [
+                'title' => '',
+                'content' => '',
+                'alignment' => 'left',
+            ],
+            'categories_grid' => [
+                'title' => '',
+                'columns_count' => 3,
+                'show_count' => false,
+                'description' => '',
+            ],
+            'services_list' => [
+                'title' => '',
+                'layout_type' => 'grid',
+                'description' => '',
+            ],
+            'portfolio' => [
+                'title' => '',
+                'limit' => 6,
+                'show_filters' => false,
+                'description' => '',
+            ],
+            'cta_form' => [
+                'title' => '',
+                'description' => '',
+                'form_type' => 'call',
+            ],
+            'contacts' => [
+                'title' => '',
+                'contact_type' => 'embedded',
+            ],
+            'gallery' => [
+                'title' => '',
+                'columns_count' => 3,
+                'lightbox' => true,
+            ],
+            'advantages' => [
+                'title' => '',
+                'advantages' => [],
+            ],
+            'global_block' => [
+                'block_code' => '',
+            ],
+            default => [],
+        };
+    }
+
+    private function getSectionTypeLabel(string $sectionType): string
+    {
+        return match ($sectionType) {
+            'hero' => __('Hero секция'),
+            'text' => __('Текстовая секция'),
+            'categories_grid' => __('Сетка категорий'),
+            'services_list' => __('Список услуг'),
+            'portfolio' => __('Портфолио'),
+            'cta_form' => __('CTA секция'),
+            'contacts' => __('Контакты'),
+            'gallery' => __('Галерея'),
+            'advantages' => __('Преимущества'),
+            'global_block' => __('Глобальный блок'),
+            default => __('Неизвестная секция'),
+        };
     }
 
     public function preview(Page $page): void
@@ -255,7 +419,7 @@ class PageEditScreen extends Screen
             $page->save();
         }
 
-        $previewUrl = route('preview.page', $page->preview_token);
+        $previewUrl = route('preview.page', ['token' => $page->preview_token]);
 
         Alert::info(__("Предпросмотр доступен по адресу: {$previewUrl}"));
 

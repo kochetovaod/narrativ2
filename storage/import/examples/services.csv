@@ -1,0 +1,4 @@
+title,slug,content,show_cases,portfolio_cases,status,seo_title,seo_description,seo_h1,published_at
+"Пример услуги 1","service-1","{""blocks"":[{""type"":""text"",""content"":""Текст услуги 1""},{""type"":""image"",""src"":""/images/service1.jpg""}]}",1,"1,2,3",published,"SEO заголовок услуги 1","SEO описание услуги 1","H1 заголовок услуги 1","2025-01-01"
+"Пример услуги 2","service-2","{""blocks"":[{""type"":""text"",""content"":""Текст услуги 2""}]}",0,"2,4",draft,"SEO заголовок услуги 2","SEO описание услуги 2","H1 заголовок услуги 2",""
+"Пример услуги 3","service-3","{""blocks"":[{""type"":""gallery"",""images"":[""/images/service3-1.jpg"",""/images/service3-2.jpg""]}]}",1,"1,3",published,"SEO заголовок услуги 3","SEO описание услуги 3","H1 заголовок услуги 3","2025-01-02"

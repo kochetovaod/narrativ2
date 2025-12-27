@@ -2,9 +2,16 @@
 
 declare(strict_types=1);
 
+use App\Orchid\Screens\Analytics\AnalyticsSettingsScreen;
 use App\Orchid\Screens\DashboardScreen;
+use App\Orchid\Screens\Form\FormEditScreen;
+use App\Orchid\Screens\Form\FormListScreen;
 use App\Orchid\Screens\GlobalBlock\GlobalBlockEditScreen;
 use App\Orchid\Screens\GlobalBlock\GlobalBlockListScreen;
+use App\Orchid\Screens\ImportExport\ImportExportScreen;
+use App\Orchid\Screens\Lead\LeadListScreen;
+use App\Orchid\Screens\Menu\MenuEditScreen;
+use App\Orchid\Screens\Menu\MenuListScreen;
 use App\Orchid\Screens\NewsPost\NewsPostEditScreen;
 use App\Orchid\Screens\NewsPost\NewsPostListScreen;
 use App\Orchid\Screens\Page\PageEditScreen;
@@ -213,4 +220,72 @@ Route::middleware((array) config('platform.middleware.private'))
             ->breadcrumbs(fn (Trail $trail) => $trail
                 ->push(__('Панель управления'), route('platform.main'))
                 ->push(__('Глобальные блоки'), route('platform.systems.global-blocks')));
+
+        // Меню и навигация
+        Route::screen('menu/edit/{menuCode}', MenuEditScreen::class)
+            ->name('platform.systems.menu.edit')
+            ->breadcrumbs(fn (Trail $trail, $menuCode) => $trail
+                ->push(__('Панель управления'), route('platform.main'))
+                ->push(__('Меню и навигация'), route('platform.systems.menu'))
+                ->push(__('Редактирование меню'), route('platform.systems.menu.edit', $menuCode)));
+
+        Route::screen('menu', MenuListScreen::class)
+            ->name('platform.systems.menu')
+            ->breadcrumbs(fn (Trail $trail) => $trail
+                ->push(__('Панель управления'), route('platform.main'))
+                ->push(__('Меню и навигация'), route('platform.systems.menu')));
+
+        // Формы и заявки
+        Route::screen('forms/{form}/edit', FormEditScreen::class)
+            ->name('platform.forms.edit')
+            ->breadcrumbs(fn (Trail $trail, $form) => $trail
+                ->push(__('Панель управления'), route('platform.main'))
+                ->push(__('Формы и заявки'), route('platform.forms.index'))
+                ->push(__('Редактирование формы'), route('platform.forms.edit', $form)));
+
+        Route::screen('forms/create', FormEditScreen::class)
+            ->name('platform.forms.create')
+            ->breadcrumbs(fn (Trail $trail) => $trail
+                ->push(__('Панель управления'), route('platform.main'))
+                ->push(__('Формы и заявки'), route('platform.forms.index'))
+                ->push(__('Создание формы'), route('platform.forms.create')));
+
+        Route::screen('forms', FormListScreen::class)
+            ->name('platform.forms.index')
+            ->breadcrumbs(fn (Trail $trail) => $trail
+                ->push(__('Панель управления'), route('platform.main'))
+                ->push(__('Формы и заявки'), route('platform.forms.index')));
+
+        Route::screen('leads', LeadListScreen::class)
+            ->name('platform.leads.index')
+            ->breadcrumbs(fn (Trail $trail) => $trail
+                ->push(__('Панель управления'), route('platform.main'))
+                ->push(__('Формы и заявки'), route('platform.forms.index'))
+                ->push(__('Заявки'), route('platform.leads.index')));
+
+        // Аналитика и метрики
+        Route::screen('analytics/settings', AnalyticsSettingsScreen::class)
+            ->name('platform.analytics.settings')
+            ->breadcrumbs(fn (Trail $trail) => $trail
+                ->push(__('Панель управления'), route('platform.main'))
+                ->push(__('Аналитика и метрики'), route('platform.analytics.settings')));
+
+        // Импорт и экспорт
+        Route::screen('import-export', ImportExportScreen::class)
+            ->name('platform.import-export')
+            ->breadcrumbs(fn (Trail $trail) => $trail
+                ->push(__('Панель управления'), route('platform.main'))
+                ->push(__('Импорт/Экспорт'), route('platform.import-export')));
+
+        Route::post('import-export/import', [ImportExportScreen::class, 'import'])
+            ->name('platform.import-export.import');
+
+        Route::post('import-export/export', [ImportExportScreen::class, 'export'])
+            ->name('platform.import-export.export');
+
+        Route::post('import-export/preview', [ImportExportScreen::class, 'preview'])
+            ->name('platform.import-export.preview');
+
+        Route::get('import-export/download/{logId}', [ImportExportScreen::class, 'download'])
+            ->name('platform.import-export.download');
     });

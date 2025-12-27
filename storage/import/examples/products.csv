@@ -1,0 +1,4 @@
+title,slug,description,specs,category_id,portfolio_cases,status,seo_title,seo_description,seo_h1,published_at
+"Пример товара 1","product-1","Описание товара 1","{""weight"":""10kg"",""color"":""red"",""material"":""steel""}",1,"1,2,3",published,"SEO заголовок товара 1","SEO описание товара 1","H1 заголовок товара 1","2025-01-01"
+"Пример товара 2","product-2","Описание товара 2","{""weight"":""15kg"",""color"":""blue"",""size"":""large""}",1,"2,4",draft,"SEO заголовок товара 2","SEO описание товара 2","H1 заголовок товара 2",""
+"Пример товара 3","product-3","Описание товара 3","{""weight"":""5kg"",""color"":""green"",""warranty"":""2 years""}",2,"1,3",published,"SEO заголовок товара 3","SEO описание товара 3","H1 заголовок товара 3","2025-01-02"

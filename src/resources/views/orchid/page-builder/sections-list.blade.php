@@ -64,6 +64,9 @@ document.addEventListener('DOMContentLoaded', function() {
         addSectionToUI(section, index);
     });
     
+    // Инициализируем обработчики событий
+    initEventHandlers();
+    
     // Инициализируем drag & drop
     initDragAndDrop();
 });
@@ -94,7 +97,8 @@ function addSectionToUI(section, index) {
     const contentElement = clone.querySelector('.section-content');
     
     // Устанавливаем данные секции
-    sectionElement.dataset.sectionId = section.id || 'new-' + Date.now();
+    const sectionId = section.id || 'new-' + Date.now();
+    sectionElement.dataset.sectionId = sectionId;
     sectionElement.dataset.sectionType = section.type;
     sectionElement.dataset.sectionOrder = index;
     
@@ -102,8 +106,15 @@ function addSectionToUI(section, index) {
     titleElement.textContent = getSectionTitle(section.type, section.settings?.title);
     typeElement.textContent = '{{ __('Тип:') }} ' + getSectionTypeLabel(section.type);
     
+    // Добавляем скрытые поля для идентификации секции
+    const hiddenFields = `
+        <input type="hidden" name="sections[${index}][id]" value="${sectionId}">
+        <input type="hidden" name="sections[${index}][type]" value="${section.type}">
+        <input type="hidden" name="sections[${index}][order]" value="${index}">
+    `;
+    
     // Добавляем контент секции
-    contentElement.innerHTML = generateSectionContent(section);
+    contentElement.innerHTML = hiddenFields + generateSectionContent(section);
     
     // Удаляем ID шаблона
     clone.id = '';
@@ -401,16 +412,22 @@ function generateAdvantagesContent(settings) {
 }
 
 function generateGlobalBlockContent(settings) {
+    const selectedCode = settings.block_code || '';
+    let options = '<option value="">{{ __('Выберите блок') }}</option>';
+    
+    // Список глобальных блоков (должен быть передан из PHP)
+    const globalBlocks = @json($globalBlocks ?? []);
+    
+    globalBlocks.forEach(block => {
+        const selected = selectedCode === block.code ? 'selected' : '';
+        options += `<option value="${block.code}" ${selected}>${block.title} (${block.code})</option>`;
+    });
+    
     return `
         <div class="form-group">
             <label>{{ __('Глобальный блок') }}</label>
             <select class="form-control" name="sections[${getCurrentSectionIndex()}][settings][block_code]">
-                <option value="">{{ __('Выберите блок') }}</option>
-                @foreach($globalBlocks as $block)
-                    <option value="{{ $block->code }}" ${settings.block_code === '{{ $block->code }}' ? 'selected' : ''}>
-                        {{ $block->title }} ({{ $block->code }})
-                    </option>
-                @endforeach
+                ${options}
             </select>
         </div>
     `;
@@ -461,21 +478,54 @@ function getCurrentSectionIndex() {
     return sections.length - 1;
 }
 
+function initEventHandlers() {
+    const container = document.getElementById('sections-container');
+    if (!container) return;
+    
+    // Обработчики для кнопок управления секциями
+    container.addEventListener('click', function(e) {
+        const sectionItem = e.target.closest('.section-item');
+        if (!sectionItem) return;
+        
+        const sectionId = sectionItem.dataset.sectionId;
+        
+        if (e.target.closest('.move-up')) {
+            e.preventDefault();
+            moveSectionUp(sectionItem);
+        } else if (e.target.closest('.move-down')) {
+            e.preventDefault();
+            moveSectionDown(sectionItem);
+        } else if (e.target.closest('.remove-section')) {
+            e.preventDefault();
+            removeSection(sectionItem, sectionId);
+        }
+    });
+    
+    // Обработчики для добавления элементов в секции
+    container.addEventListener('click', function(e) {
+        if (e.target.closest('.add-cta-button')) {
+            e.preventDefault();
+            addCTAButton(e.target.closest('.section-item'));
+        } else if (e.target.closest('.remove-cta-button')) {
+            e.preventDefault();
+            removeCTAButton(e.target.closest('.input-group'));
+        } else if (e.target.closest('.add-advantage')) {
+            e.preventDefault();
+            addAdvantage(e.target.closest('.section-item'));
+        } else if (e.target.closest('.remove-advantage-item')) {
+            e.preventDefault();
+            removeAdvantageItem(e.target.closest('.input-group'));
+        }
+    });
+}
+
 function initDragAndDrop() {
     // Инициализация drag & drop для переупорядочивания секций
     const container = document.getElementById('sections-container');
     if (!container) return;
     
     // Простая инициализация - можно расширить с помощью Sortable.js
-    container.addEventListener('click', function(e) {
-        if (e.target.closest('.move-up')) {
-            moveSectionUp(e.target.closest('.section-item'));
-        } else if (e.target.closest('.move-down')) {
-            moveSectionDown(e.target.closest('.section-item'));
-        } else if (e.target.closest('.remove-section')) {
-            removeSection(e.target.closest('.section-item'));
-        }
-    });
+    // Пока используем только кнопки вверх/вниз
 }
 
 function moveSectionUp(sectionElement) {
@@ -494,17 +544,80 @@ function moveSectionDown(sectionElement) {
     }
 }
 
-function removeSection(sectionElement) {
+function removeSection(sectionElement, sectionId) {
     if (confirm('{{ __('Удалить секцию?') }}')) {
-        sectionElement.remove();
+        // Добавляем скрытое поле для удаления секции
+        const deleteField = document.createElement('input');
+        deleteField.type = 'hidden';
+        deleteField.name = 'delete_sections[]';
+        deleteField.value = sectionId;
+        sectionElement.appendChild(deleteField);
+        
+        // Скрываем элемент вместо удаления
+        sectionElement.style.display = 'none';
+        
         updateSectionOrder();
         
         // Если секций не осталось, показываем пустое состояние
-        const remainingSections = document.querySelectorAll('.section-item');
-        if (remainingSections.length === 0) {
+        const visibleSections = document.querySelectorAll('.section-item:not([style*="display: none"])');
+        if (visibleSections.length === 0) {
             createEmptyState();
         }
     }
+}
+
+function addCTAButton(sectionElement) {
+    const container = sectionElement.querySelector('.cta-buttons');
+    const index = container.querySelectorAll('.input-group').length;
+    
+    const html = `
+        <div class="input-group mb-2">
+            <input type="text" class="form-control" name="sections[${getSectionIndex(sectionElement)}][settings][cta_buttons][${index}][text]" 
+                   value="" placeholder="{{ __('Текст кнопки') }}">
+            <input type="text" class="form-control" name="sections[${getSectionIndex(sectionElement)}][settings][cta_buttons][${index}][link]" 
+                   value="" placeholder="{{ __('Ссылка') }}">
+            <div class="input-group-append">
+                <button type="button" class="btn btn-outline-danger remove-cta-button">
+                    <i class="icon-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', html);
+}
+
+function removeCTAButton(buttonGroup) {
+    buttonGroup.remove();
+}
+
+function addAdvantage(sectionElement) {
+    const container = sectionElement.querySelector('.advantages-list');
+    const index = container.querySelectorAll('.input-group').length;
+    
+    const html = `
+        <div class="input-group mb-2">
+            <input type="text" class="form-control" name="sections[${getSectionIndex(sectionElement)}][settings][advantages][${index}][title]" 
+                   value="" placeholder="{{ __('Название преимущества') }}">
+            <input type="text" class="form-control" name="sections[${getSectionIndex(sectionElement)}][settings][advantages][${index}][description]" 
+                   value="" placeholder="{{ __('Описание') }}">
+            <div class="input-group-append">
+                <button type="button" class="btn btn-outline-danger remove-advantage-item">
+                    <i class="icon-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', html);
+}
+
+function removeAdvantageItem(advantageGroup) {
+    advantageGroup.remove();
+}
+
+function getSectionIndex(sectionElement) {
+    return Array.from(document.querySelectorAll('.section-item')).indexOf(sectionElement);
 }
 
 function updateSectionOrder() {

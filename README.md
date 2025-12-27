@@ -16,29 +16,39 @@
 ## 🚀 Быстрый старт
 
 ### Предварительные требования
+
 - Docker и Docker Compose
 - Git
 
 ### Локальный запуск через `make` (рекомендуется)
+
 1. Клонируйте репозиторий:
+
    ```bash
    git clone <repository-url>
    cd narrativ
    ```
+
 2. Подготовьте окружение (копирование `.env` файлов, создание `database/backups`, сборка контейнеров, установка зависимостей, генерация `APP_KEY`):
+
    ```bash
    make setup
    ```
+
    Скрипт `scripts/setup.sh` выполнит шаги из Makefile, поэтому отдельные команды `cp src/.env.example src/.env` и т.д. запускать не нужно. Для разработки он использует `docker-compose.yml` + `docker-compose.dev.yml`, чтобы сразу поднять вспомогательные сервисы (phpMyAdmin, Adminer, Meilisearch UI) и HTTPS.
 3. Запустите проект и убедитесь, что сервисы работают:
+
    ```bash
    make up-dev
    make ps
    ```
+
    Для других окружений укажите `ENV`, например: `ENV=staging make up`, `ENV=production make up`.
 
 ### Локальный запуск напрямую через Docker Compose
+
 Если `make` недоступен, выполните команды вручную:
+
 ```bash
 cp src/.env.example src/.env
 cp src/.env.testing.example src/.env.testing
@@ -134,7 +144,7 @@ TELEGRAM_CHAT_ID=
 
 ## 📁 Структура проекта
 
-```
+```text
 narrativ/
 ├── src/                    # Laravel приложение
 ├── docker/                 # Docker конфигурации
@@ -151,14 +161,14 @@ narrativ/
 
 ## 🌐 Доступ к сервисам (локальная разработка)
 
-- Приложение: http://localhost и https://localhost
+- Приложение: <http://localhost> и <https://localhost>
 - PostgreSQL: localhost:5432
 - Redis: localhost:6379
-- Meilisearch API: http://localhost:7700
-- Meilisearch UI: http://localhost:7701
-- MailHog UI: http://localhost:8025
-- phpMyAdmin: http://localhost:8081
-- Adminer: http://localhost:8082
+- Meilisearch API: <http://localhost:7700>
+- Meilisearch UI: <http://localhost:7701>
+- MailHog UI: <http://localhost:8025>
+- phpMyAdmin: <http://localhost:8081>
+- Adminer: <http://localhost:8082>
 
 ## 🐳 Docker сервисы
 
@@ -175,18 +185,24 @@ narrativ/
 - Восстановление:
   1. Скопируйте нужные архивы/дампы в `database/backups`.
   2. База данных:
+
      ```bash
      docker-compose exec -T postgres psql -U ${DB_USERNAME:-laravel} -d ${DB_DATABASE:-laravel} < database/backups/db_YYYYMMDD_HHMMSS.sql
      ```
+
   3. Медиа-файлы:
+
      ```bash
      tar -xzf database/backups/media_YYYYMMDD_HHMMSS.tar.gz -C src/storage/app/public
      ```
+
      Архив содержит публичное хранилище (`storage/app/public`) вместе с коллекциями и конверсиями медиафайлов.
   4. (Опционально) логи:
+
      ```bash
      tar -xzf database/backups/logs_YYYYMMDD_HHMMSS.tar.gz -C src/storage/logs
      ```
+
   5. Очистите кеши после восстановления: `docker-compose exec -T php-fpm php artisan optimize:clear`.
 
 ## 🚢 Деплой (staging/production)
@@ -199,12 +215,14 @@ narrativ/
 ## 🔧 Разработка
 
 ### Локальная разработка
+
 1. Внесите изменения в код
 2. Запустите тесты: `make test`
 3. Просмотрите логи: `make logs`
 4. Обновите поисковые индексы после миграций или сидов: `make scout-import`
 
 ### Контейнерные команды
+
 ```bash
 # Запуск миграций
 docker-compose exec php-fpm php artisan migrate
@@ -222,12 +240,14 @@ docker-compose exec php-fpm php artisan optimize:clear
 ## 📝 Документация
 
 Полная документация проекта находится в папке `docs/`:
+
 - [ADR: Настройка панели Orchid](docs/adr/2025-12-26-orchid-setup.md)
 - [CI/CD](docs/ci-cd/README.md)
 
 ## 🐛 Отладка
 
 Для отладки включите XDebug в файле `docker/php-fpm/xdebug.ini` и пересоберите образ:
+
 ```bash
 docker-compose build php-fpm
 docker-compose up -d
@@ -236,7 +256,8 @@ docker-compose up -d
 ## 📄 Лицензия
 
 Проект разрабатывается для внутреннего использования.
-```
+
+```text
 
 ### Шаг 1.8: Проверка структуры
 
@@ -249,7 +270,8 @@ tree -L 3 -I 'node_modules|vendor'
 ```
 
 **Ожидаемая структура:**
-```
+
+```text
 narrativ/
 ├── .env.docker
 ├── .gitignore

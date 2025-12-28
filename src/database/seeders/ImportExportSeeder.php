@@ -315,7 +315,7 @@ class ImportExportSeeder extends Seeder
             );
 
             // Создаем запись дедупликации
-            $contactKey = $lead->email ? 'email:' . strtolower($lead->email) : 'phone:' . preg_replace('/\D+/', '', (string) $lead->phone);
+            $contactKey = $lead->email ? 'email:'.strtolower($lead->email) : 'phone:'.preg_replace('/\D+/', '', (string) $lead->phone);
             LeadDedupIndex::updateOrCreate(
                 ['lead_id' => $lead->id],
                 [

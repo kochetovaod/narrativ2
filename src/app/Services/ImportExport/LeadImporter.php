@@ -359,7 +359,7 @@ class LeadImporter extends ImportExportService
      */
     protected function createDedupIndex(Lead $lead, array $data): void
     {
-        $contactKey = !empty($data['email']) ? 'email:' . strtolower($data['email']) : 'phone:' . preg_replace('/\D+/', '', (string) $data['phone']);
+        $contactKey = ! empty($data['email']) ? 'email:'.strtolower($data['email']) : 'phone:'.preg_replace('/\D+/', '', (string) $data['phone']);
         LeadDedupIndex::updateOrCreate(
             ['lead_id' => $lead->id],
             [

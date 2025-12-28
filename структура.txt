@@ -1,0 +1,469 @@
+.
+├── AGENTS.md
+├── artisan
+├── CONTENT_MODULES_REPORT.md
+├── database
+│   ├── backups
+│   │   └── .gitkeep
+│   └── seeds
+├── docker
+│   ├── all_files.txt
+│   ├── .env.docker
+│   ├── nginx
+│   │   ├── nginx.conf
+│   │   ├── nginx-ssl.conf
+│   │   ├── production.conf
+│   │   ├── ssl
+│   │   │   └── .gitkeep
+│   │   └── staging.conf
+│   └── php-fpm
+│       ├── Dockerfile
+│       ├── Dockerfile.prod
+│       ├── php.ini
+│       ├── php-prod.ini
+│       ├── supervisord.conf
+│       └── xdebug.ini
+├── docker-compose.dev.yml
+├── docker-compose.override.yml
+├── docker-compose.prod.yml
+├── docker-compose.test.yml
+├── docker-compose.yml
+├── docs
+│   ├── adr
+│   │   └── 2025-12-26-orchid-setup.md
+│   ├── api
+│   ├── ci-cd
+│   │   └── README.md
+│   └── deployment
+├── .env
+├── .env.docker
+├── .github
+│   ├── dependabot.yml
+│   ├── ISSUE_TEMPLATE.md
+│   ├── pull_request_template.md
+│   └── workflows
+│       ├── deploy-production.yml
+│       ├── deploy-staging.yml
+│       └── tests.yml
+├── .gitignore
+├── Makefile
+├── README.md
+├── scripts
+│   ├── all_files.txt
+│   ├── backup
+│   │   └── backup.sh
+│   ├── ci
+│   │   ├── pre-commit.sh
+│   │   └── validate-workflows.sh
+│   ├── deploy
+│   │   └── deploy.sh
+│   └── setup.sh
+├── src
+│   ├── AGENTS.md
+│   ├── app
+│   │   ├── Http
+│   │   │   ├── Controllers
+│   │   │   │   ├── Controller.php
+│   │   │   │   ├── FormController.php
+│   │   │   │   ├── PreviewController.php
+│   │   │   │   ├── PublicController.php
+│   │   │   │   └── SitemapController.php
+│   │   │   └── Middleware
+│   │   │       ├── Authenticate.php
+│   │   │       ├── EncryptCookies.php
+│   │   │       ├── EnsureImportExportPermission.php
+│   │   │       ├── EnsurePlatformUserIsActive.php
+│   │   │       ├── ForceHttps.php
+│   │   │       ├── HandleSlugRedirects.php
+│   │   │       ├── PreventRequestsDuringMaintenance.php
+│   │   │       ├── RedirectIfAuthenticated.php
+│   │   │       ├── TrimStrings.php
+│   │   │       ├── TrustHosts.php
+│   │   │       ├── TrustProxies.php
+│   │   │       ├── ValidateSignature.php
+│   │   │       └── VerifyCsrfToken.php
+│   │   ├── Logging
+│   │   │   ├── TelegramHandler.php
+│   │   │   └── TelegramLogger.php
+│   │   ├── Models
+│   │   │   ├── AdminAudit.php
+│   │   │   ├── AnalyticsSettings.php
+│   │   │   ├── Concerns
+│   │   │   │   ├── HasMediaCollections.php
+│   │   │   │   ├── HasPublicationStatus.php
+│   │   │   │   ├── HasSeo.php
+│   │   │   │   ├── HasSlugRedirects.php
+│   │   │   │   └── RecordsAdminAudit.php
+│   │   │   ├── FormField.php
+│   │   │   ├── Form.php
+│   │   │   ├── FormPlacement.php
+│   │   │   ├── GlobalBlock.php
+│   │   │   ├── ImportLog.php
+│   │   │   ├── LeadDedupIndex.php
+│   │   │   ├── Lead.php
+│   │   │   ├── MediaFile.php
+│   │   │   ├── MediaLink.php
+│   │   │   ├── MenuItem.php
+│   │   │   ├── Menu.php
+│   │   │   ├── NewsPost.php
+│   │   │   ├── Page.php
+│   │   │   ├── PortfolioCase.php
+│   │   │   ├── ProductCategory.php
+│   │   │   ├── Product.php
+│   │   │   ├── Redirect.php
+│   │   │   ├── SeoTemplate.php
+│   │   │   ├── Service.php
+│   │   │   ├── TrackingEvent.php
+│   │   │   └── User.php
+│   │   ├── Orchid
+│   │   │   ├── Filters
+│   │   │   │   ├── CategoryFilter.php
+│   │   │   │   ├── SearchFilter.php
+│   │   │   │   └── StatusFilter.php
+│   │   │   ├── Layouts
+│   │   │   │   └── ImportExport
+│   │   │   ├── Permissions
+│   │   │   │   └── Rbac.php
+│   │   │   ├── PlatformProvider.php
+│   │   │   └── Screens
+│   │   │       ├── Analytics
+│   │   │       │   └── AnalyticsSettingsScreen.php
+│   │   │       ├── DashboardScreen.php
+│   │   │       ├── Form
+│   │   │       │   ├── FormEditScreen.php
+│   │   │       │   └── FormListScreen.php
+│   │   │       ├── GlobalBlock
+│   │   │       │   ├── GlobalBlockEditScreen.php
+│   │   │       │   └── GlobalBlockListScreen.php
+│   │   │       ├── ImportExport
+│   │   │       │   └── ImportExportScreen.php
+│   │   │       ├── Lead
+│   │   │       │   └── LeadListScreen.php
+│   │   │       ├── Menu
+│   │   │       │   ├── MenuEditScreen.php
+│   │   │       │   └── MenuListScreen.php
+│   │   │       ├── NewsPost
+│   │   │       │   ├── NewsPostEditScreen.php
+│   │   │       │   └── NewsPostListScreen.php
+│   │   │       ├── Page
+│   │   │       │   ├── PageEditScreen.php
+│   │   │       │   └── PageListScreen.php
+│   │   │       ├── PortfolioCase
+│   │   │       │   ├── PortfolioCaseEditScreen.php
+│   │   │       │   └── PortfolioCaseListScreen.php
+│   │   │       ├── Product
+│   │   │       │   ├── ProductEditScreen.php
+│   │   │       │   └── ProductListScreen.php
+│   │   │       ├── ProductCategory
+│   │   │       │   ├── ProductCategoryEditScreen.php
+│   │   │       │   └── ProductCategoryListScreen.php
+│   │   │       ├── Roles
+│   │   │       │   ├── RoleEditScreen.php
+│   │   │       │   └── RoleListScreen.php
+│   │   │       ├── Service
+│   │   │       │   ├── ServiceEditScreen.php
+│   │   │       │   └── ServiceListScreen.php
+│   │   │       └── Users
+│   │   │           ├── UserEditScreen.php
+│   │   │           └── UserListScreen.php
+│   │   ├── Providers
+│   │   │   └── AppServiceProvider.php
+│   │   └── Services
+│   │       ├── Analytics
+│   │       │   ├── EventTrackerService.php
+│   │       │   ├── GoogleAnalyticsService.php
+│   │       │   └── YandexMetricaService.php
+│   │       ├── BreadcrumbService.php
+│   │       ├── CaptchaService.php
+│   │       ├── FormBuilderService.php
+│   │       ├── FormPlacementService.php
+│   │       ├── ImportExport
+│   │       │   ├── CSVExporter.php
+│   │       │   ├── CSVProcessor.php
+│   │       │   ├── FileStorageService.php
+│   │       │   ├── ImportExportInterface.php
+│   │       │   ├── ImportExportService.php
+│   │       │   ├── LeadImporter.php
+│   │       │   ├── PortfolioCaseImporter.php
+│   │       │   ├── ProductCategoryImporter.php
+│   │       │   ├── ProductImporter.php
+│   │       │   └── ServiceImporter.php
+│   │       ├── LeadService.php
+│   │       ├── SearchService.php
+│   │       ├── Seo
+│   │       │   ├── SchemaOrgGenerator.php
+│   │       │   └── SeoMetaResolver.php
+│   │       └── TelegramNotifier.php
+│   ├── artisan
+│   ├── bootstrap
+│   │   ├── app.php
+│   │   ├── cache
+│   │   │   ├── .gitignore
+│   │   │   ├── packages.php
+│   │   │   └── services.php
+│   │   └── providers.php
+│   ├── composer.json
+│   ├── composer.lock
+│   ├── config
+│   │   ├── app.php
+│   │   ├── auth.php
+│   │   ├── cache.php
+│   │   ├── database.php
+│   │   ├── filesystems.php
+│   │   ├── logging.php
+│   │   ├── mail.php
+│   │   ├── media-library.php
+│   │   ├── platform.php
+│   │   ├── queue.php
+│   │   ├── scout.php
+│   │   ├── services.php
+│   │   └── session.php
+│   ├── database
+│   │   ├── database.sqlite
+│   │   ├── factories
+│   │   │   ├── AdminAuditFactory.php
+│   │   │   ├── FormFactory.php
+│   │   │   ├── FormFieldFactory.php
+│   │   │   ├── FormPlacementFactory.php
+│   │   │   ├── GlobalBlockFactory.php
+│   │   │   ├── LeadDedupIndexFactory.php
+│   │   │   ├── LeadFactory.php
+│   │   │   ├── MediaFileFactory.php
+│   │   │   ├── MediaLinkFactory.php
+│   │   │   ├── MenuFactory.php
+│   │   │   ├── MenuItemFactory.php
+│   │   │   ├── NewsPostFactory.php
+│   │   │   ├── PageFactory.php
+│   │   │   ├── PortfolioCaseFactory.php
+│   │   │   ├── ProductCategoryFactory.php
+│   │   │   ├── ProductFactory.php
+│   │   │   ├── RedirectFactory.php
+│   │   │   ├── SeoTemplateFactory.php
+│   │   │   ├── ServiceFactory.php
+│   │   │   ├── TrackingEventFactory.php
+│   │   │   └── UserFactory.php
+│   │   ├── .gitignore
+│   │   ├── migrations
+│   │   │   ├── 0001_01_01_000000_create_users_table.php
+│   │   │   ├── 0001_01_01_000001_create_cache_table.php
+│   │   │   ├── 0001_01_01_000002_create_jobs_table.php
+│   │   │   ├── 2025_01_01_000000_create_import_logs_table.php
+│   │   │   ├── 2025_12_26_000000_add_orchid_platform_tables.php
+│   │   │   ├── 2025_12_26_105000_create_navigation_tables.php
+│   │   │   ├── 2025_12_26_120000_create_products_table.php
+│   │   │   ├── 2025_12_26_120100_create_portfolio_cases_table.php
+│   │   │   ├── 2025_12_26_120200_create_services_table.php
+│   │   │   ├── 2025_12_26_120300_create_portfolio_case_relations_table.php
+│   │   │   ├── 2025_12_26_121000_create_content_tables.php
+│   │   │   ├── 2025_12_26_130000_create_media_table.php
+│   │   │   ├── 2025_12_26_140000_create_forms_and_leads_tables.php
+│   │   │   ├── 2025_12_26_150000_create_seo_and_redirects_tables.php
+│   │   │   ├── 2025_12_26_160000_add_preview_tokens_and_admin_audits.php
+│   │   │   ├── 2025_12_27_120000_add_preview_token_to_pages_table.php
+│   │   │   └── 2025_12_28_000000_create_analytics_settings_table.php
+│   │   └── seeders
+│   │       ├── AdminUserSeeder.php
+│   │       ├── AnalyticsSeeder.php
+│   │       ├── ContentSeeder.php
+│   │       ├── DatabaseSeeder.php
+│   │       ├── FormSeeder.php
+│   │       ├── ImportExportSeeder.php
+│   │       └── MenuSeeder.php
+│   ├── .editorconfig
+│   ├── .env
+│   ├── .env.example
+│   ├── .env.testing.example
+│   ├── .gitattributes
+│   ├── .gitignore
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── phpstan.neon.dist
+│   ├── .phpunit.result.cache
+│   ├── phpunit.xml
+│   ├── postcss.config.js
+│   ├── public
+│   │   ├── favicon.ico
+│   │   ├── .htaccess
+│   │   ├── index.php
+│   │   ├── robots.txt
+│   │   └── storage -> /var/www/html/storage/app/public
+│   ├── README.md
+│   ├── resources
+│   │   ├── css
+│   │   │   └── app.css
+│   │   ├── js
+│   │   │   ├── app.js
+│   │   │   └── bootstrap.js
+│   │   └── views
+│   │       ├── components
+│   │       │   ├── breadcrumbs.blade.php
+│   │       │   └── menu
+│   │       │       ├── footer.blade.php
+│   │       │       └── header.blade.php
+│   │       ├── errors
+│   │       │   ├── 404.blade.php
+│   │       │   └── 500.blade.php
+│   │       ├── orchid
+│   │       │   ├── analytics
+│   │       │   │   └── settings.blade.php
+│   │       │   ├── form
+│   │       │   │   ├── edit.blade.php
+│   │       │   │   ├── list.blade.php
+│   │       │   │   └── partials
+│   │       │   │       └── form-fields.blade.php
+│   │       │   ├── menu
+│   │       │   │   ├── edit.blade.php
+│   │       │   │   ├── list.blade.php
+│   │       │   │   └── partials
+│   │       │   │       └── menu-items.blade.php
+│   │       │   └── page-builder
+│   │       │       └── sections-list.blade.php
+│   │       ├── platform
+│   │       │   ├── dashboard.blade.php
+│   │       │   └── partials
+│   │       │       └── admin-header.blade.php
+│   │       ├── preview
+│   │       │   ├── global_block.blade.php
+│   │       │   ├── page.blade.php
+│   │       │   └── sections
+│   │       │       ├── advantages.blade.php
+│   │       │       ├── categories_grid.blade.php
+│   │       │       ├── contacts.blade.php
+│   │       │       ├── cta_form.blade.php
+│   │       │       ├── gallery.blade.php
+│   │       │       ├── global_block.blade.php
+│   │       │       ├── hero.blade.php
+│   │       │       ├── portfolio.blade.php
+│   │       │       ├── services_list.blade.php
+│   │       │       └── text.blade.php
+│   │       ├── public
+│   │       │   ├── home.blade.php
+│   │       │   ├── layouts
+│   │       │   │   └── app.blade.php
+│   │       │   ├── news
+│   │       │   │   ├── index.blade.php
+│   │       │   │   └── show.blade.php
+│   │       │   ├── pages
+│   │       │   │   ├── contacts.blade.php
+│   │       │   │   ├── document.blade.php
+│   │       │   │   └── show.blade.php
+│   │       │   ├── partials
+│   │       │   │   ├── breadcrumbs.blade.php
+│   │       │   │   ├── form-block.blade.php
+│   │       │   │   ├── form-placement.blade.php
+│   │       │   │   └── pagination.blade.php
+│   │       │   ├── portfolio
+│   │       │   │   ├── index.blade.php
+│   │       │   │   └── show.blade.php
+│   │       │   ├── products
+│   │       │   │   ├── category.blade.php
+│   │       │   │   ├── index.blade.php
+│   │       │   │   └── show.blade.php
+│   │       │   ├── search.blade.php
+│   │       │   ├── sections
+│   │       │   │   ├── advantages.blade.php
+│   │       │   │   ├── categories_grid.blade.php
+│   │       │   │   ├── contacts.blade.php
+│   │       │   │   ├── cta_form.blade.php
+│   │       │   │   ├── gallery.blade.php
+│   │       │   │   ├── global_block.blade.php
+│   │       │   │   ├── hero.blade.php
+│   │       │   │   ├── portfolio.blade.php
+│   │       │   │   ├── services_list.blade.php
+│   │       │   │   └── text.blade.php
+│   │       │   └── services
+│   │       │       ├── index.blade.php
+│   │       │       └── show.blade.php
+│   │       └── welcome.blade.php
+│   ├── routes
+│   │   ├── api.php
+│   │   ├── console.php
+│   │   ├── platform.php
+│   │   └── web.php
+│   ├── storage
+│   │   ├── app
+│   │   │   ├── .gitignore
+│   │   │   ├── private
+│   │   │   │   └── .gitignore
+│   │   │   └── public
+│   │   │       ├── .gitignore
+│   │   │       └── media
+│   │   │           ├── conversions
+│   │   │           └── tmp
+│   │   ├── debugbar
+│   │   │   ├── 01KDEEZXZ726YZ11JYRHGFEC3C.json
+│   │   │   ├── 01KDEF4NK66PAJ3TTJWDM1PB7V.json
+│   │   │   ├── 01KDEFCY21ZG0MCN3QWCVVJS0T.json
+│   │   │   ├── 01KDEFD4NJG2VQV9E7H1EPEGXA.json
+│   │   │   ├── 01KDEFD93MK8YCWWBM2FCCB6H4.json
+│   │   │   ├── 01KDEFD9RQM2X3V9AV8C2WXGCT.json
+│   │   │   ├── 01KDEGTJEA9EJZ5VZ93V53D2XZ.json
+│   │   │   ├── 01KDEGTN6WWZ7GTW3ERPG0FK19.json
+│   │   │   └── 01KDEKCDG42Y30FTC7XQXSEXHR.json
+│   │   ├── framework
+│   │   │   ├── cache
+│   │   │   │   ├── data
+│   │   │   │   │   └── .gitignore
+│   │   │   │   └── .gitignore
+│   │   │   ├── .gitignore
+│   │   │   ├── sessions
+│   │   │   │   └── .gitignore
+│   │   │   ├── testing
+│   │   │   │   └── .gitignore
+│   │   │   └── views
+│   │   │       └── .gitignore
+│   │   ├── logs
+│   │   │   ├── .gitignore
+│   │   │   ├── laravel.log
+│   │   │   ├── queue.err.log
+│   │   │   ├── queue.out.log
+│   │   │   └── xdebug.log
+│   │   └── media-library
+│   │       └── temp
+│   ├── tailwind.config.js
+│   ├── tests
+│   │   ├── CreatesApplication.php
+│   │   ├── Feature
+│   │   │   ├── AdminAccessControlTest.php
+│   │   │   ├── AdminAuditTest.php
+│   │   │   ├── CaptchaTest.php
+│   │   │   ├── ExampleTest.php
+│   │   │   ├── FormSubmissionTest.php
+│   │   │   ├── HealthCheckTest.php
+│   │   │   ├── PreviewAccessTest.php
+│   │   │   ├── PublicContentFlowTest.php
+│   │   │   ├── SearchSmokeTest.php
+│   │   │   ├── SlugRedirectTest.php
+│   │   │   └── TelegramHealthCommandTest.php
+│   │   ├── TestCase.php
+│   │   └── Unit
+│   │       ├── ExampleTest.php
+│   │       ├── PublicationStatusTest.php
+│   │       ├── SchemaOrgGeneratorTest.php
+│   │       ├── SeoMetaResolverTest.php
+│   │       └── TelegramNotifierTest.php
+│   └── vite.config.js
+├── storage
+│   ├── app
+│   │   └── public
+│   ├── framework
+│   │   ├── cache
+│   │   ├── sessions
+│   │   └── views
+│   ├── import
+│   │   └── examples
+│   │       ├── leads.csv
+│   │       ├── portfolio_cases.csv
+│   │       ├── product_categories.csv
+│   │       ├── products.csv
+│   │       └── services.csv
+│   └── logs
+├── tests
+│   ├── Feature
+│   ├── Integration
+│   └── Unit
+├── TODO.md
+├── структура.txt
+└── ТЗ.md
+
+122 directories, 345 files

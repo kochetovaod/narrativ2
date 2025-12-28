@@ -11,6 +11,7 @@ RUN apk update && apk add --no-cache \
     oniguruma-dev \
     libxml2-dev \
     zip \
+    linux-headers \
     unzip \
     postgresql-dev \
     libzip-dev \

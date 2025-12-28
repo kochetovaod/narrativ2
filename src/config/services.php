@@ -40,4 +40,27 @@ return [
         'chat_id' => env('TELEGRAM_CHAT_ID'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | CAPTCHA Services
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for reCAPTCHA and hCaptcha verification services
+    |
+    */
+
+    'recaptcha' => [
+        'site_key' => env('RECAPTCHA_SITE_KEY'),
+        'secret' => env('RECAPTCHA_SECRET_KEY'),
+    ],
+
+    'hcaptcha' => [
+        'site_key' => env('HCAPTCHA_SITE_KEY'),
+        'secret' => env('HCAPTCHA_SECRET_KEY'),
+    ],
+
+    'captcha' => [
+        'verify_timeout' => env('CAPTCHA_VERIFY_TIMEOUT', 10),
+    ],
+
 ];

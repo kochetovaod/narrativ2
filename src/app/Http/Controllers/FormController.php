@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Form;
 use App\Services\Analytics\EventTrackerService;
+use App\Services\CaptchaService;
 use App\Services\LeadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,8 @@ class FormController extends Controller
 {
     public function __construct(
         private LeadService $leadService,
-        private EventTrackerService $eventTrackerService
+        private EventTrackerService $eventTrackerService,
+        private CaptchaService $captchaService
     ) {}
 
     /**
@@ -56,9 +58,15 @@ class FormController extends Controller
 
             // Проверка капчи (если настроена)
             if (! $this->validateCaptcha($request, $form)) {
+                $this->eventTrackerService->trackEvent('form_captcha_failed', [
+                    'form_code' => $formCode,
+                    'captcha_mode' => $form->captcha_mode,
+                    'ip' => $request->ip(),
+                ], $request);
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'Ошибка проверки безопасности.',
+                    'message' => 'Ошибка проверки безопасности. Попробуйте еще раз.',
                 ], 400);
             }
 
@@ -228,48 +236,43 @@ class FormController extends Controller
      */
     private function validateCaptcha(Request $request, Form $form): bool
     {
-        switch ($form->captcha_mode) {
-            case 'recaptcha':
-                return $this->validateReCaptcha($request);
-            case 'hcaptcha':
-                return $this->validateHCaptcha($request);
-            case 'none':
-            default:
-                return true;
+        // Если капча отключена, пропускаем проверку
+        if ($form->captcha_mode === 'none') {
+            return true;
         }
-    }
 
-    /**
-     * Проверка Google reCAPTCHA
-     */
-    private function validateReCaptcha(Request $request): bool
-    {
-        $token = $request->input('g-recaptcha-response');
+        // Проверяем настройки капчи
+        if (! $this->captchaService->isConfigured($form->captcha_mode)) {
+            Log::warning('Captcha not configured', [
+                'form_code' => $form->code,
+                'captcha_mode' => $form->captcha_mode,
+            ]);
 
-        if (! $token) {
             return false;
         }
 
-        // TODO: Реализовать проверку через Google API
-        // Здесь должна быть интеграция с Google reCAPTCHA API
-
-        return true; // Заглушка
-    }
-
-    /**
-     * Проверка hCaptcha
-     */
-    private function validateHCaptcha(Request $request): bool
-    {
-        $token = $request->input('h-captcha-response');
+        // Получаем токен в зависимости от типа капчи
+        $token = match ($form->captcha_mode) {
+            'recaptcha' => $request->input('g-recaptcha-response'),
+            'hcaptcha' => $request->input('h-captcha-response'),
+            default => null,
+        };
 
         if (! $token) {
+            Log::warning('Captcha token missing', [
+                'form_code' => $form->code,
+                'captcha_mode' => $form->captcha_mode,
+            ]);
+
             return false;
         }
 
-        // TODO: Реализовать проверку через hCaptcha API
-
-        return true; // Заглушка
+        // Проверяем токен через сервис
+        return $this->captchaService->validateCaptcha(
+            $form->captcha_mode,
+            $token,
+            $request->ip()
+        );
     }
 
     /**

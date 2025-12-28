@@ -9,6 +9,7 @@ RUN apk add --no-cache \
     libxml2 \
     libzip \
     oniguruma \
+    linux-headers \
     postgresql-libs \
     zip \
     unzip \

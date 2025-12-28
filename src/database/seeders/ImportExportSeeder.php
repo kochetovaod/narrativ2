@@ -68,7 +68,7 @@ class ImportExportSeeder extends Seeder
         ];
 
         foreach ($categories as $categoryData) {
-            $categoryData['preview_token'] = Str::random(32);
+            $categoryData['preview_token'] = Str::orderedUuid()->toString();
             ProductCategory::updateOrCreate(
                 ['slug' => $categoryData['slug']],
                 $categoryData
@@ -119,7 +119,7 @@ class ImportExportSeeder extends Seeder
         ];
 
         foreach ($products as $productData) {
-            $productData['preview_token'] = Str::random(32);
+            $productData['preview_token'] = Str::orderedUuid()->toString();
             Product::updateOrCreate(
                 ['slug' => $productData['slug']],
                 $productData
@@ -182,7 +182,7 @@ class ImportExportSeeder extends Seeder
         ];
 
         foreach ($services as $serviceData) {
-            $serviceData['preview_token'] = Str::random(32);
+            $serviceData['preview_token'] = Str::orderedUuid()->toString();
             Service::updateOrCreate(
                 ['slug' => $serviceData['slug']],
                 $serviceData
@@ -228,7 +228,7 @@ class ImportExportSeeder extends Seeder
         ];
 
         foreach ($cases as $caseData) {
-            $caseData['preview_token'] = Str::random(32);
+            $caseData['preview_token'] = Str::orderedUuid()->toString();
             PortfolioCase::updateOrCreate(
                 ['slug' => $caseData['slug']],
                 $caseData
@@ -240,7 +240,7 @@ class ImportExportSeeder extends Seeder
     {
         $leads = [
             [
-                'form_code' => 'contact_form',
+                'form_code' => 'question',
                 'status' => 'new',
                 'phone' => '+79001234567',
                 'email' => 'client1@company.ru',
@@ -262,7 +262,7 @@ class ImportExportSeeder extends Seeder
                 'created_at' => now()->subDays(5),
             ],
             [
-                'form_code' => 'callback_form',
+                'form_code' => 'callback',
                 'status' => 'in_progress',
                 'phone' => '+79007654321',
                 'email' => 'client2@factory.ru',
@@ -284,7 +284,7 @@ class ImportExportSeeder extends Seeder
                 'created_at' => now()->subDays(3),
             ],
             [
-                'form_code' => 'quote_request',
+                'form_code' => 'calc',
                 'status' => 'closed',
                 'phone' => '+79005555555',
                 'email' => 'client3@manufacturing.ru',

@@ -315,12 +315,12 @@ class ImportExportSeeder extends Seeder
             );
 
             // Создаем запись дедупликации
+            $contactKey = $lead->email ? 'email:' . strtolower($lead->email) : 'phone:' . preg_replace('/\D+/', '', (string) $lead->phone);
             LeadDedupIndex::updateOrCreate(
                 ['lead_id' => $lead->id],
                 [
-                    'email_hash' => hash('sha256', $lead->email),
-                    'phone_hash' => hash('sha256', $lead->phone),
-                    'created_at' => now(),
+                    'contact_key' => $contactKey,
+                    'created_date' => $lead->created_at->toDateString(),
                 ]
             );
         }

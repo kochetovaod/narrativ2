@@ -359,12 +359,12 @@ class LeadImporter extends ImportExportService
      */
     protected function createDedupIndex(Lead $lead, array $data): void
     {
+        $contactKey = !empty($data['email']) ? 'email:' . strtolower($data['email']) : 'phone:' . preg_replace('/\D+/', '', (string) $data['phone']);
         LeadDedupIndex::updateOrCreate(
             ['lead_id' => $lead->id],
             [
-                'email_hash' => ! empty($data['email']) ? hash('sha256', $data['email']) : null,
-                'phone_hash' => ! empty($data['phone']) ? hash('sha256', $data['phone']) : null,
-                'created_at' => now(),
+                'contact_key' => $contactKey,
+                'created_date' => now()->toDateString(),
             ]
         );
     }

@@ -59,7 +59,7 @@ jobs:
         cache-to: type=gha,mode=max
         
     - name: Deploy to Staging Server
-      uses: appleboy/ssh-action@v1.0.0
+      uses: appleboy/ssh-action@v1.2.4
       with:
         host: ${{ secrets.STAGING_SSH_HOST }}
         username: ${{ secrets.STAGING_SSH_USER }}
